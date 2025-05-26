@@ -3,7 +3,7 @@ from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
 def main():
     # load model and tokenizer
-    load_path = "model"
+    load_path = "../model"
     model = GPT2LMHeadModel.from_pretrained(load_path)
     tokenizer = GPT2Tokenizer.from_pretrained("openai-community/gpt2")
 
@@ -21,7 +21,7 @@ def main():
     generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
     # Print output
-    print(generated_text + "\n" + "------------------" + "\n")
+    print(generated_text)
 
 if __name__ == "__main__":
     main()

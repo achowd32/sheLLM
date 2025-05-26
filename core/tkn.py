@@ -1,9 +1,9 @@
 import sys
 import json
-from transformers import GPT2Tokenizer
+from transformers import AutoTokenizer
 
 def main():
-    tokenizer = GPT2Tokenizer.from_pretrained("openai-community/gpt2")
+    tokenizer = AutoTokenizer.from_pretrained("../model")
     while True:
         text = sys.stdin.read()
         if not text:

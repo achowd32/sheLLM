@@ -8,17 +8,16 @@ warnings.filterwarnings("ignore", message=".*pin_memory.*not supported on MPS.*"
 
 def train_model(hf_dataset):
     # load in current model
-    load_path = "model"
+    load_path = "../model"
     model = AutoModelForCausalLM.from_pretrained(load_path)
 
     # training arguments
     training_args = TrainingArguments(
-        output_dir="checkpoints/",
         num_train_epochs=1,
         per_device_train_batch_size=1,
         learning_rate=5e-5,
-        logging_steps=25,
-        save_steps=500,
+        logging_steps=1,
+        save_strategy="no",
     )
 
     # initialize trainer
@@ -32,7 +31,7 @@ def train_model(hf_dataset):
     trainer.train()
 
     # save model
-    model.save_pretrained("model")
+    model.save_pretrained("../model")
 
 def main():
     for line in sys.stdin:

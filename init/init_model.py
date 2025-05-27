@@ -1,4 +1,4 @@
-import os
+import os, sys
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 def init_model():
@@ -9,8 +9,12 @@ def init_model():
     config = {"vocab_size": len(tokenizer)}
 
     # initialize the model
-    config = AutoConfig.from_pretrained('gpt2', **config)
-    model = AutoModelForCausalLM.from_config(config)
+    pretrained = int(sys.argv[1])
+    if pretrained:
+        model = AutoModelForCausalLM.from_pretrained("gpt2")
+    else:
+        config = AutoConfig.from_pretrained('gpt2', **config)
+        model = AutoModelForCausalLM.from_config(config)
 
     # save model
     save_dir = "../model"

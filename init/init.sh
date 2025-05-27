@@ -9,4 +9,4 @@ python3 init_data.py $1 | while read line; do
 done
 
 echo -e "${BLUE}Initializing model...${RESET}"
-python3 init_model.py
+python3 init_model.py $2

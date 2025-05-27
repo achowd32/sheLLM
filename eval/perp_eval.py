@@ -1,11 +1,12 @@
 from evaluate import load
+import sys
 
-def main():
+def main(prompts):
     #load in perplexity from evaluate
     perplexity = load("perplexity", module_type="metric")
 
     #define prompts from which perplexity will make predictions
-    predictions = ["Who are you", "Tell me a story", "Generate five interesting sentences"]
+    predictions = prompts.splitlines()
 
     #load model and get results from perplexity
     results = perplexity.compute(predictions=predictions, model_id='../model')
@@ -15,4 +16,4 @@ def main():
     print(f"List of perplexities: {perplexities}")
     
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1])

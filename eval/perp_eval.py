@@ -1,4 +1,3 @@
-import os
 from evaluate import load
 
 def main():
@@ -9,8 +8,7 @@ def main():
     predictions = ["Who are you", "Tell me a story", "Generate five interesting sentences"]
 
     #load model and get results from perplexity
-    model_path = os.path.abspath("../model")
-    results = perplexity.compute(predictions=predictions, model_id='model_path')
+    results = perplexity.compute(predictions=predictions, model_id='../model')
     perplexities = results["perplexities"]
     mean_perplexity = results["mean_perplexity"]
     print(f"Mean perplexity: {mean_perplexity}")

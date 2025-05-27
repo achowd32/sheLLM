@@ -16,7 +16,8 @@ def main():
         attention_mask=tokens.attention_mask,
         max_length = 100,
         temperature=0.5,
-        do_sample = True
+        do_sample = True,
+        pad_token_id=tokenizer.eos_token_id
     )
     generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
 

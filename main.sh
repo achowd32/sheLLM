@@ -7,12 +7,12 @@ mkdir tmp
 
 numfiles=${1:-5}
 cd init
-./init.sh
+./init.sh $numfiles
 
 cd ../core
 ./core.sh
 
-cd eval
+cd ../eval
 ./eval.sh
 
 deactivate

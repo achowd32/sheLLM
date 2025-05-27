@@ -1,6 +1,9 @@
 import sys
 import json
 from transformers import AutoTokenizer
+from transformers import logging
+
+logging.set_verbosity(logging.ERROR)
 
 def main():
     tokenizer = AutoTokenizer.from_pretrained("../model")

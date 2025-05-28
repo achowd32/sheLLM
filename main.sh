@@ -4,7 +4,7 @@
 source ../shvenv/bin/activate
 
 #handle flags
-while getopts "pn:" flag; do
+while getopts "pkn:" flag; do
  case $flag in
    p) # Handle the -p flag (pretrained or not)
     pretrained=1

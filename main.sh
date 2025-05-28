@@ -6,10 +6,13 @@ source ../shvenv/bin/activate
 #handle flags
 while getopts "pn:" flag; do
  case $flag in
-   p) # Handle the -p flag
+   p) # Handle the -p flag (pretrained or not)
     pretrained=1
     ;;
-   n) # Handle the -n flag
+   k) # Handle the -k flag (keep files or not)
+    keep=1
+    ;;
+   n) # Handle the -n flag (number of files from dataset)
     numfiles=${OPTARG}
     re='^[0-9]+$'
     if ! [[ $numfiles =~ $re ]]; then
@@ -25,6 +28,7 @@ done
 
 #create necessary directories
 mkdir tmp
+mkdir outputs
 
 #initiate pipeline
 numfiles=${numfiles:-5}
@@ -37,5 +41,12 @@ cd ../core
 
 cd ../eval
 ./eval.sh
+
+#delete temporary files
+cd ..
+keep=${keep:-0}
+if [[ "$keep" -eq 0 ]]; then
+    rm -rf tmp/
+fi
 
 deactivate

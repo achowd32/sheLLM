@@ -1,3 +1,3 @@
 #!/bin/bash
 
-rm -rf model tmp outputs core/checkpoints eval/interpret.txt
+rm -rf model data outputs core/checkpoints eval/interpret.txt

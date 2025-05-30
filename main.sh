@@ -1,16 +1,19 @@
 #!/bin/bash
 
+#navigate to appropriate directory
+cd "$(dirname $0)"
+
 #TODO: pivot to docker, ensure dependencies
 source ../shvenv/bin/activate
 
 #handle flags
-while getopts "pkn:" flag; do
+while getopts "pdn:" flag; do
  case $flag in
    p) # Handle the -p flag (pretrained or not)
     pretrained=1
     ;;
-   k) # Handle the -k flag (keep files or not)
-    keep=1
+   d) # Handle the -d flag (delete files or not)
+    delete=1
     ;;
    n) # Handle the -n flag (number of files from dataset)
     numfiles=${OPTARG}
@@ -26,8 +29,11 @@ while getopts "pkn:" flag; do
  esac
 done
 
+#erase previous model and outputs
+rm -rf model/ outputs/
+
 #create necessary directories
-mkdir tmp
+[ -d "data" ] || mkdir data
 mkdir outputs
 
 #initiate pipeline
@@ -44,9 +50,9 @@ cd ../eval
 
 #delete temporary files
 cd ..
-keep=${keep:-0}
-if [[ "$keep" -eq 0 ]]; then
-    rm -rf tmp/
+delete=${delete:-0}
+if [[ "$delete" -eq 1 ]]; then
+    rm -rf data/ outputs/
 fi
 
 deactivate

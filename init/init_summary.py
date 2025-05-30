@@ -9,9 +9,7 @@ def main():
     for i, sample in enumerate(dataset):
         if i >= 3:
             break
-        lines_removed = sample[data_split].replace("\n", " ")
-        truncated = lines_removed[:1024]
-        print(truncated, flush = True)
+        print(sample[data_split].replace("\n", " "), flush = True)
     
 if __name__ == "__main__":
     main()

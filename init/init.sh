@@ -11,7 +11,7 @@ else
 fi
 
 scripts=(init_lang_perp.py init_lang_perp.py init_summary.py init_summary.py)
-args=(instruction output article highlights)
+args=(instruction output text summary)
 files=(language_eval.txt perplexity_eval.txt summary_article.txt summary_highlights.txt)
 
 echo -e "${BLUE}Initializing evaluation data...${RESET}"

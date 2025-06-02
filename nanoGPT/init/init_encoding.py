@@ -9,7 +9,5 @@ for line in sys.stdin:
     stoi[char] = iter
     itos[iter] = char
     iter += 1
-print(json.dumps(stoi), flush=True)
-print(json.dumps(itos), flush=True)
-#encode = lambda s: [stoi[c] for c in s] # encoder: take a string, output a list of integers
-#decode = lambda l: ''.join([itos[i] for i in l]) # decoder: take a list of integers, output a string
+output = {"stoi": stoi, "itos": itos}
+print(json.dumps(output), flush=True)

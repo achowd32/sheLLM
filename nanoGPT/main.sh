@@ -9,3 +9,4 @@ cd init
 
 cd ../core
 ./core.sh
+

@@ -1,26 +1,19 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-
-# hyperparameters
-block_size = 64 # what is the maximum context length for predictions?
-n_embd = 128
-n_head = 4
-n_layer = 4
-dropout = 0.0
-# ------------
+from arch.hyperparameters import *
 
 class Head(nn.Module):
     """ one head of self-attention """
 
     def __init__(self, head_size):
         super().__init__()
-        self.key = nn.Linear(n_embd, head_size, bias=False)
-        self.query = nn.Linear(n_embd, head_size, bias=False)
-        self.value = nn.Linear(n_embd, head_size, bias=False)
-        self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
+        self.key = nn.Linear(N_EMBD, head_size, bias=False)
+        self.query = nn.Linear(N_EMBD, head_size, bias=False)
+        self.value = nn.Linear(N_EMBD, head_size, bias=False)
+        self.register_buffer('tril', torch.tril(torch.ones(BLOCK_SIZE, BLOCK_SIZE)))
 
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(DROPOUT)
 
     def forward(self, x):
         # input of size (batch, time-step, channels)
@@ -44,8 +37,8 @@ class MultiHeadAttention(nn.Module):
     def __init__(self, num_heads, head_size):
         super().__init__()
         self.heads = nn.ModuleList([Head(head_size) for _ in range(num_heads)])
-        self.proj = nn.Linear(head_size * num_heads, n_embd)
-        self.dropout = nn.Dropout(dropout)
+        self.proj = nn.Linear(head_size * num_heads, N_EMBD)
+        self.dropout = nn.Dropout(DROPOUT)
 
     def forward(self, x):
         out = torch.cat([h(x) for h in self.heads], dim=-1)
@@ -61,7 +54,7 @@ class FeedFoward(nn.Module):
             nn.Linear(n_embd, 4 * n_embd),
             nn.ReLU(),
             nn.Linear(4 * n_embd, n_embd),
-            nn.Dropout(dropout),
+            nn.Dropout(DROPOUT),
         )
 
     def forward(self, x):
@@ -71,7 +64,7 @@ class Block(nn.Module):
     """ Transformer block: communication followed by computation """
 
     def __init__(self, n_embd, n_head):
-        # n_embd: embedding dimension, n_head: the number of heads we'd like
+        # N_EMBD: embedding dimension, N_HEAD: the number of heads we'd like
         super().__init__()
         head_size = n_embd // n_head
         self.sa = MultiHeadAttention(n_head, head_size)
@@ -89,11 +82,11 @@ class GPTLanguageModel(nn.Module):
     def __init__(self, vocab_size):
         super().__init__()
         # each token directly reads off the logits for the next token from a lookup table
-        self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
-        self.position_embedding_table = nn.Embedding(block_size, n_embd)
-        self.blocks = nn.Sequential(*[Block(n_embd, n_head=n_head) for _ in range(n_layer)])
-        self.ln_f = nn.LayerNorm(n_embd) # final layer norm
-        self.lm_head = nn.Linear(n_embd, vocab_size)
+        self.token_embedding_table = nn.Embedding(vocab_size, N_EMBD)
+        self.position_embedding_table = nn.Embedding(BLOCK_SIZE, N_EMBD)
+        self.blocks = nn.Sequential(*[Block(N_EMBD, n_head=N_HEAD) for _ in range(N_LAYER)])
+        self.ln_f = nn.LayerNorm(N_EMBD) # final layer norm
+        self.lm_head = nn.Linear(N_EMBD, vocab_size)
 
         # better init, not covered in the original GPT video, but important, will cover in followup video
         self.apply(self._init_weights)
@@ -130,8 +123,8 @@ class GPTLanguageModel(nn.Module):
     def generate(self, idx, max_new_tokens):
         # idx is (B, T) array of indices in the current context
         for _ in range(max_new_tokens):
-            # crop idx to the last block_size tokens
-            idx_cond = idx[:, -block_size:]
+            # crop idx to the last BLOCK_SIZE tokens
+            idx_cond = idx[:, -BLOCK_SIZE:]
             # get the predictions
             logits, loss = self(idx_cond)
             # focus only on the last time step

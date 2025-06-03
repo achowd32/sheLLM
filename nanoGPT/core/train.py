@@ -1,7 +1,9 @@
 import sys
 import json
 import torch
-import architecture as arch
+
+sys.path.append("..")
+from arch import architecture
 
 vocab_size = int(sys.argv[1])
 
@@ -10,7 +12,7 @@ for line in sys.stdin:
     xb, yb = torch.tensor(batch["batch_x"]), torch.tensor(batch["batch_y"])
     
     # load in model and optimizer
-    model = arch.GPTLanguageModel(vocab_size)
+    model = architecture.GPTLanguageModel(vocab_size)
     model.load_state_dict(torch.load("../model/model.pth"))
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     optimizer.load_state_dict(torch.load("../model/optimizer.pth"))

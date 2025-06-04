@@ -2,4 +2,4 @@
 
 cd "$(dirname $0)"
 
-rm -rf data/ model/
+rm -rf data/ model/ logs/ /tmp/vs_pipe

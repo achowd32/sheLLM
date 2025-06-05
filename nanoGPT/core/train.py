@@ -7,6 +7,7 @@ from arch import architecture
 
 vocab_size = int(sys.argv[1])
 eval_interval = int(sys.argv[2])
+max_iters = int(sys.argv[3])
 
 i = 0
 for line in sys.stdin:
@@ -21,10 +22,10 @@ for line in sys.stdin:
     model.train()
 
     # log model state
-    if i % eval_interval == 0:
+    if i % eval_interval == 0 or i == max_iters - 1:
          file_name = f"../logs/{i}.pth"
          torch.save(model.state_dict(), file_name)
-         print(file_name, flush=True)
+         print(i, flush=True)
  
     # evaluate the loss
     logits, loss = model(xb, yb)

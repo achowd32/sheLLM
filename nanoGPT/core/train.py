@@ -5,9 +5,9 @@ import torch
 sys.path.append("..")
 from arch import architecture
 
-vocab_size = int(sys.argv[1])
-eval_interval = int(sys.argv[2])
-max_iters = int(sys.argv[3])
+vocab_size = 128
+eval_interval = int(sys.argv[1])
+max_iters = int(sys.argv[2])
 
 i = 0
 for line in sys.stdin:

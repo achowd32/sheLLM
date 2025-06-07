@@ -8,8 +8,8 @@ sys.path.append("..")
 from arch import architecture
 
 file_name = sys.argv[1]
-vocab_size = int(sys.argv[2])
-eval_iters = int(sys.argv[3])
+eval_iters = int(sys.argv[2])
+vocab_size = 128
 
 model = architecture.GPTLanguageModel(vocab_size)
 model.load_state_dict(torch.load(file_name))

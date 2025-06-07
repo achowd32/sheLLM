@@ -13,7 +13,6 @@ fi
 
 echo -e "${BLUE}Initializing encoder...${RESET}"
 VOCAB_SIZE=$(cat ../data/train.txt | sed 's/\(.\)/\1\n/g' | sort -u | tee >(python3 init_encoding.py >> ../model/encoding.json) | wc -l | tr -d ' ')
-echo "$VOCAB_SIZE" > /tmp/vs_pipe &
 
 echo -e "${BLUE}Initializing model...${RESET}"
-python3 init_model.py "$VOCAB_SIZE"
+python3 init_model.py

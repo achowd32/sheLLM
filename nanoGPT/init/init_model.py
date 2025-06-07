@@ -9,7 +9,7 @@ from arch import architecture
 learning_rate = 3e-4
 
 # create a PyTorch model
-vocab_size = int(sys.argv[1])
+vocab_size = 128
 model = architecture.GPTLanguageModel(vocab_size)
 # print the number of parameters in the model
 print(sum(p.numel() for p in model.parameters())/1e6, 'M parameters')

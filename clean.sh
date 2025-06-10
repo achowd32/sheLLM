@@ -2,4 +2,4 @@
 
 cd "$(dirname $0)"
 
-rm -rf data/ model/ logs/
+rm -rf data/ logs/ eval/sample.txt model.pth

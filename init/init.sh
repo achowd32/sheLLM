@@ -12,4 +12,4 @@ else
 fi
 
 echo -e "${BLUE}Initializing model...${RESET}"
-python3 init_model.py
+python3 init_model.py > ../model.pth

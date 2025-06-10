@@ -8,7 +8,9 @@ from arch import architecture
 vocab_size = 128
 
 model = architecture.GPTLanguageModel(vocab_size)
-model.load_state_dict(torch.load("../model/model.pth"))
+checkpoint = torch.load("../model.pth")
+
+model.load_state_dict(checkpoint['model_sd'])
 model.eval()
 
 prompt = sys.stdin.read()

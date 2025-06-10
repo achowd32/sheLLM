@@ -16,5 +16,6 @@ print(sum(p.numel() for p in model.parameters())/1e6, 'M parameters')
 # create a PyTorch optimizer
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 # save model and optimizer
-torch.save(model.state_dict(), "../model/model.pth")
-torch.save(optimizer.state_dict(), "../model/optimizer.pth")
+save_dict = {'model_sd': model.state_dict(), 'opt_sd': optimizer.state_dict()}
+torch.save(save_dict, sys.stdout.buffer)
+sys.stdout.buffer.flush()

@@ -1,8 +1,6 @@
 import sys
 import json
 import torch
-import os
-import time
 
 sys.path.append("..")
 from arch import architecture
@@ -17,10 +15,7 @@ for line in sys.stdin:
     xb, yb = torch.tensor(batch["batch_x"]), torch.tensor(batch["batch_y"])
     
     # load in model and optimizer
-    while os.path.getsize("../model.pth") == 0:
-         time.sleep(0.25)
     checkpoint = torch.load("../model.pth")
-    open("../model.pth", "w").close()
 
     model = architecture.GPTLanguageModel(vocab_size)
     model.load_state_dict(checkpoint['model_sd'])
@@ -33,7 +28,7 @@ for line in sys.stdin:
     if i % eval_interval == 0 or i == max_iters - 1:
          file_name = f"../logs/{i}.pth"
          torch.save(model.state_dict(), file_name)
-         print(i, file = sys.stderr, flush=True)
+         print(i, flush=True)
  
     # evaluate the loss
     logits, loss = model(xb, yb)
@@ -43,8 +38,7 @@ for line in sys.stdin:
     
     # save model and optimizer
     save_dict = {'model_sd': model.state_dict(), 'opt_sd': optimizer.state_dict()}
-    torch.save(save_dict, sys.stdout.buffer)
-    sys.stdout.buffer.flush()
+    torch.save(save_dict, "../model.pth")
 
     #iterate
     i += 1

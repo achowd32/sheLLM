@@ -17,7 +17,7 @@ jobs:
       with:
         python-version: '3.9.13'
         cache: 'pip' # caching pip dependencies
-    - run: pip install torch numpy language_tool_python
+    - run: pip install -r requirements.txt
     
     - name: Make script executable
       run: chmod +x eval/*.sh

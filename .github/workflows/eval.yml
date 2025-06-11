@@ -10,18 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.9.13'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install torch
-        
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.9.13'
+        cache: 'pip' # caching pip dependencies
+    - run: pip install -r torch numpy language_tool_python
+    
     - name: Make script executable
       run: chmod +x eval/*.sh
       

@@ -16,6 +16,9 @@ jobs:
     - name: Make script executable
       run: chmod +x eval/eval.sh
 
+    - name: cd into directory
+      run: cd eval/
+      
     - name: Run evaluation script
       run: eval/eval.sh
 

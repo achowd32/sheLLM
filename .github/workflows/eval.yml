@@ -17,7 +17,7 @@ jobs:
       run: chmod +x eval/*.sh
       
     - name: Run evaluation script
-      run: eval.sh
+      run: ./eval.sh
       working-directory: ./eval
 
     - name: Upload evaluation results

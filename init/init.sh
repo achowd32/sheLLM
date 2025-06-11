@@ -1,3 +1,6 @@
+#!/bin/bash
+filename="model.pth"
+
 echo -e "${BLUE}Initializing training data...${RESET}"
 if [ -f "train.txt" ]; then
     echo "train.txt already initialized -- skipping"
@@ -12,4 +15,4 @@ else
 fi
 
 echo -e "${BLUE}Initializing model...${RESET}"
-python3 init_model.py 
+python3 init_model.py $LEARNING_RATE $filename 

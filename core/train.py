@@ -8,6 +8,7 @@ from arch import architecture
 vocab_size = 128
 eval_interval = int(sys.argv[1])
 max_iters = int(sys.argv[2])
+filename = sys.argv[3]
 
 i = 0
 for line in sys.stdin:
@@ -15,7 +16,7 @@ for line in sys.stdin:
     xb, yb = torch.tensor(batch["batch_x"]), torch.tensor(batch["batch_y"])
     
     # load in model and optimizer
-    checkpoint = torch.load("../model.pth")
+    checkpoint = torch.load(f"../{filename}")
 
     model = architecture.GPTLanguageModel(vocab_size)
     model.load_state_dict(checkpoint['model_sd'])
@@ -38,7 +39,7 @@ for line in sys.stdin:
     
     # save model and optimizer
     save_dict = {'model_sd': model.state_dict(), 'opt_sd': optimizer.state_dict()}
-    torch.save(save_dict, "../model.pth")
+    torch.save(save_dict, f"../{filename}")
 
     #iterate
     i += 1

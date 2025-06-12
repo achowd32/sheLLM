@@ -12,15 +12,28 @@ done
 #set variables
 file_name=${file_name:-"../data/train.txt"}
 char_count=$(cat $file_name | wc -c | tr -d ' ')
-upper_rand=$((char_count - BLOCK_SIZE - 1)) #confirm dimensions later
-data_string=$(cat $file_name)
+upper_offset=$((char_count - BLOCK_SIZE)) #confirm dimensions later
+sample_size=$((BLOCK_SIZE + 1))
 num_samples=$1
 
 #loop over number of samples
 i=0
+offset=1
 while [ $i -lt $num_samples ]; do
-    rand=$(jot -r 1 0 $upper_rand) #get a random starting position
-    echo -n "${data_string:${rand}:$((BLOCK_SIZE+1))}" | od -An -t u1 -v | grep -oE "[0-9]+" | tr '\n' ' ' #sample and tokenize
+    if [ $offset -gt $upper_offset ]; then
+        end_sample=$((char_count - offset + 1))
+        start_sample=$((sample_size - end_sample))
+        tail -c +"$offset" "$file_name" | head -c +"$end_sample" | od -An -t u1 -v | grep -oE "[0-9]+" | tr '\n' ' ' 
+        offset=1
+        tail -c +"$offset" "$file_name" | head -c +"$start_sample" | od -An -t u1 -v | grep -oE "[0-9]+" | tr '\n' ' ' 
+        ((i+=1))
+        ((offset+=start_sample))
+        continue
+    fi
+
+    tail -c +"$offset" "$file_name" | head -c +"$sample_size" | od -An -t u1 -v | grep -oE "[0-9]+" | tr '\n' ' ' #sample and tokenize
     echo "" #add newline
-    i=$((i+1)) #iterate
+
+    ((i+=1)) #iterate
+    ((offset+=sample_size)) #increase offset
 done

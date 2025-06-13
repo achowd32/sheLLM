@@ -17,11 +17,8 @@ jobs:
       with:
         python-version: '3.9.13'
         cache: 'pip' # caching pip dependencies
-    - run: pip install -r requirements.txt
+    - run: pip install -r torch numpy language_tool_python
     
-    - name: setup POS eval
-      run: python -m spacy download en_core_web_sm
-
     - name: Make script executable
       run: chmod +x eval/*.sh
       

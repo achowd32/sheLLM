@@ -1,4 +1,5 @@
 #!/bin/bash
+
 filename='model.pth'
 num_samples=$((MAX_ITERS * BATCH_SIZE))
 

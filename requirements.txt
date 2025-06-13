@@ -1,3 +1,5 @@
 torch
 numpy
 language_tool_python
+bert_score
+spacy

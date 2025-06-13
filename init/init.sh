@@ -6,6 +6,7 @@ if [ -f "train.txt" ]; then
     echo "train.txt already initialized -- skipping"
 else
     curl -o ../data/data.txt https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt
+    
     #split into train and validation data
     string=$(cat ../data/data.txt)
     length=${#string}

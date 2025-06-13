@@ -26,6 +26,7 @@ while [ $i -lt $num_samples ]; do
         tail -c +"$offset" "$file_name" | head -c +"$end_sample" | od -An -t u1 -v | grep -oE "[0-9]+" | tr '\n' ' ' 
         offset=1
         tail -c +"$offset" "$file_name" | head -c +"$start_sample" | od -An -t u1 -v | grep -oE "[0-9]+" | tr '\n' ' ' 
+        echo ""
         ((i+=1))
         ((offset+=start_sample))
         continue

@@ -2,7 +2,7 @@
 
 cd "$(dirname $0)"
 
-mkdir data/ logs/
+mkdir logs/ data/
 
 set -o allexport
 source arch/hyperparameters.py

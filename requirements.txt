@@ -2,4 +2,4 @@ torch
 numpy
 language_tool_python
 bert_score
-spacy
+spacy==3.7.2

@@ -6,10 +6,11 @@ sys.path.append("..")
 from arch import architecture
 
 vocab_size = 128
-max_tok = int(sys.argv[1])
+filename = sys.argv[1]
+max_tok = int(sys.argv[2])
 
 model = architecture.GPTLanguageModel(vocab_size)
-checkpoint = torch.load("../model.pth")
+checkpoint = torch.load(f"../{filename}")
 
 model.load_state_dict(checkpoint['model_sd'])
 model.eval()

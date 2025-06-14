@@ -2,7 +2,7 @@
 prompt=""
 model_file="model.pth"
 max_tokens=500
-num_evals=1
+num_evals=10
 
 lang_sum=0
 prec_sum=0
@@ -28,25 +28,25 @@ while [ $iters -lt $num_evals ]; do
     # perform an evaluation of the semantic similarity between sample and validation data
     bertscores=$(python3 bert_eval.py "$sample" "$reference" 2>&1 | grep "BERTScores:" | awk '{print $2, $3, $4}')
     read precision recall f1 <<< "$bertscores"
-    prec_sum=$(bc -le "$prec_sum + $precision")
-    rec_sum=$(bc -le "$rec_sum + $recall")
-    f1_sum=$(bc -le "$f1_sum + $f1")
+    prec_sum=$(echo "$prec_sum + $precision" | bc -l)
+    rec_sum=$(echo "$rec_sum + $recall" | bc -l)
+    f1_sum=$(echo "$f1_sum + $f1" | bc -l)
 
     # perform an evaluation of the syntactic similarity between sample and validation data
     pos_score=$(python3 pos_eval.py "$sample" "$reference" 2>&1 | grep "Syntactic similarity" | awk '{print $3}')
-    pos_sum=$(bc -le "$pos_sum + $pos_score")
+    pos_sum=$(echo "$pos_sum + $pos_score" | bc -l)
 
     # iterate
     ((iters+=1))
 done 
 
-lang_avg=$(bc -e "scale=5; $lang_sum / $num_evals")
-prec_avg=$(bc -e "scale=5; $prec_sum / $num_evals")
-rec_avg=$(bc -e "scale=5; $rec_sum / $num_evals")
-f1_avg=$(bc -e "scale=5; $f1_sum / $num_evals")
-pos_avg=$(bc -e "scale=5; $pos_sum / $num_evals")
+lang_avg=$(echo "scale=5; $lang_sum / $num_evals" | bc)
+prec_avg=$(echo "scale=5; $prec_sum / $num_evals" | bc)
+rec_avg=$(echo "scale=5; $rec_sum / $num_evals" | bc)
+f1_avg=$(echo "scale=5; $f1_sum / $num_evals" | bc)
+pos_avg=$(echo "scale=5; $pos_sum / $num_evals" | bc)
 
 echo -e "${BLUE}Printing evaluation results, averaged over ${num_evals} iterations...${RESET}"
 echo "Language evaluation: ${lang_avg} language errors detected on average"
-echo -e "Semantic similarity evaluation (BERT):\nPrecision—$precision\nRecall Score—$recall\nF1 Score—$f1"
+echo -e "Semantic similarity evaluation (BERT):\nPrecision—${prec_avg}\nRecall Score—${rec_avg}\nF1 Score—${f1_avg}"
 echo "Syntactic similarity evaluation (Part-Of-Speech): ${pos_avg}"

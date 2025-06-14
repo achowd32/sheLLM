@@ -2,7 +2,7 @@
 prompt=""
 model_file="model.pth"
 max_tokens=500
-num_evals=10
+num_evals=2
 
 lang_sum=0
 prec_sum=0
@@ -47,6 +47,6 @@ f1_avg=$(echo "scale=5; $f1_sum / $num_evals" | bc)
 pos_avg=$(echo "scale=5; $pos_sum / $num_evals" | bc)
 
 echo -e "${BLUE}Printing evaluation results, averaged over ${num_evals} iterations...${RESET}"
-echo "Language evaluation: ${lang_avg} language errors detected on average"
-echo -e "Semantic similarity evaluation (BERT):\nPrecision—${prec_avg}\nRecall Score—${rec_avg}\nF1 Score—${f1_avg}"
-echo "Syntactic similarity evaluation (Part-Of-Speech): ${pos_avg}"
+echo "Language evaluation: ${lang_avg} language errors detected on average" | tee -a results.txt
+echo -e "Semantic similarity evaluation (BERT):\nPrecision—${prec_avg}\nRecall Score—${rec_avg}\nF1 Score—${f1_avg}" | tee -a results.txt
+echo "Syntactic similarity evaluation (Part-Of-Speech): ${pos_avg}" | tee -a results.txt

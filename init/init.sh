@@ -1,19 +1,20 @@
 #!/bin/bash
 filename="model.pth"
 
+# download training data if it doesn't exist
 echo -e "${BLUE}Initializing training data...${RESET}"
-if [ -f "train.txt" ]; then
-    echo "train.txt already initialized -- skipping"
+if [ -f "../data/data.txt" ]; then
+    echo "data.txt already initialized -- skipping"
 else
     curl -o ../data/data.txt https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt
-    
-    #split into train and validation data
-    string=$(cat ../data/data.txt)
-    length=${#string}
-    split=$(( $length * 9 / 10 ))
-    echo "${string:0:${split}}" > ../data/train.txt
-    echo "${string:${split}:${length}}" > ../data/val.txt
 fi
 
+# split into train and validation data
+length=$(wc -c ../data/data.txt | grep -oE "[0-9]+")
+split=$((length * 9 / 10))
+head -c +"$split" ../data/data.txt > ../data/train.txt
+tail -c +"$((split + 1))" ../data/data.txt > ../data/val.txt
+
+# initialize model
 echo -e "${BLUE}Initializing model...${RESET}"
 python3 init_model.py $LEARNING_RATE $filename 

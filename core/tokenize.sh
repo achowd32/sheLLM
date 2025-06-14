@@ -12,7 +12,7 @@ done
 #set variables
 file_name=${file_name:-"../data/train.txt"}
 char_count=$(cat $file_name | wc -c | tr -d ' ')
-upper_offset=$((char_count - BLOCK_SIZE)) #confirm dimensions later
+upper_offset=$((char_count - BLOCK_SIZE))
 sample_size=$((BLOCK_SIZE + 1))
 num_samples=$1
 
@@ -20,6 +20,7 @@ num_samples=$1
 i=0
 offset=1
 while [ $i -lt $num_samples ]; do
+    # in case we need to loop around
     if [ $offset -gt $upper_offset ]; then
         end_sample=$((char_count - offset + 1))
         start_sample=$((sample_size - end_sample))

@@ -1,8 +1,8 @@
 #!/bin/bash
-prompt=""
 model_file="model.pth"
+prompt=""
 max_tokens=500
-num_evals=2
+num_evals=1
 
 lang_sum=0
 prec_sum=0

@@ -9,6 +9,11 @@ else
     curl -o ../data/data.txt https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt
 fi
 
+#clean data (remove non-ASCII)
+touch ../data/tmp.txt
+LC_ALL=C tr -cd '\0-\177' < ../data/data.txt > ../data/tmp.txt
+mv ../data/tmp.txt ../data/data.txt
+
 # split into train and validation data
 length=$(wc -c ../data/data.txt | grep -oE "[0-9]+")
 split=$((length * 9 / 10))

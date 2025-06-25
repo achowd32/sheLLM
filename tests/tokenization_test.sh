@@ -3,8 +3,15 @@
 cd "$(dirname "$0")"
 set -o allexport
 source "test_params.py"
-BLUE='\033[1;34m'
-RESET='\033[0m'
 set +o allexport
 
-./../core/tokenize.sh "100" "inputs_outputs/token_input.txt"
+input="inputs_outputs/token_input.txt"
+output="inputs_outputs/token_output.txt"
+
+if diff <(./../core/tokenize.sh "22" "$input") <(cat "$output"); then
+    echo "$0 success: texts are identical"
+    exit 0
+else
+    echo "$0 failure: texts are not identical"
+    exit 1
+fi

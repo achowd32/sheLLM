@@ -1,6 +1,6 @@
-Language evaluation: 67.00000 language errors detected on average
+Language evaluation: 77.00000 language errors detected on average
 Semantic similarity evaluation (BERT):
-Precision—.70070
-Recall Score—.76980
-F1 Score—.73360
-Syntactic similarity evaluation (Part-Of-Speech): .23000
+Precision—.69950
+Recall Score—.76400
+F1 Score—.73030
+Syntactic similarity evaluation (Part-Of-Speech): .32000

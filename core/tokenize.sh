@@ -1,16 +1,7 @@
 #!/bin/bash
 
-#handle flag to switch to validation data
-while getopts "v" flag; do
- case $flag in
-   v) # Handle the -v flag (use val.txt)
-    file_name="../data/val.txt"
-    ;;
- esac
-done
-
 #set variables
-file_name=${file_name:-"../data/train.txt"}
+file_name=${2:-"../data/train.txt"}
 char_count=$(cat $file_name | wc -c | tr -d ' ')
 upper_offset=$((char_count - BLOCK_SIZE))
 sample_size=$((BLOCK_SIZE + 1))

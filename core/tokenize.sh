@@ -10,7 +10,7 @@ num_samples=$1
 #loop over number of samples
 i=0
 offset=1
-while [ $i -lt $num_samples ]; do
+while [ $i -lt $num_samples ]; do # CHECK LOGIC
     # in case we need to loop around
     if [ $offset -gt $upper_offset ]; then
         end_sample=$((char_count - offset + 1))

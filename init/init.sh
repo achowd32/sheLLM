@@ -15,9 +15,9 @@ LC_ALL=C tr -cd '\0-\177' < ../data/data.txt > ../data/tmp.txt
 mv ../data/tmp.txt ../data/data.txt
 
 # split into train and validation data
-length=$(wc -c ../data/data.txt | grep -oE "[0-9]+")
+length=$(wc -c < ../data/data.txt | grep -oE "[0-9]+")
 split=$((length * 9 / 10))
-head -c +"$split" ../data/data.txt > ../data/train.txt
+head -c "$split" ../data/data.txt > ../data/train.txt
 tail -c +"$((split + 1))" ../data/data.txt > ../data/val.txt
 
 # initialize model

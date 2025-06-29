@@ -18,3 +18,11 @@ else
     echo "$0 (training data) failure: texts are not identical"
     exit 1
 fi
+
+if diff <(tail -c +"$((split + 1))" "$input") <(cat "$val"); then
+    echo "$0 (validation data) success: texts are identical"
+    exit 0
+else
+    echo "$0 (validation data) failure: texts are not identical"
+    exit 1
+fi

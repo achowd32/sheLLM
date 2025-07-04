@@ -1,138 +1,124 @@
-import torch
-import torch.nn as nn
-from torch.nn import functional as F
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
 from arch.hyperparameters import *
 
-class Head(nn.Module):
-    """ one head of self-attention """
+
+class Head(layers.Layer):
+    """One head of self-attention"""
 
     def __init__(self, head_size):
         super().__init__()
-        self.key = nn.Linear(N_EMBD, head_size, bias=False)
-        self.query = nn.Linear(N_EMBD, head_size, bias=False)
-        self.value = nn.Linear(N_EMBD, head_size, bias=False)
-        self.register_buffer('tril', torch.tril(torch.ones(BLOCK_SIZE, BLOCK_SIZE)))
+        self.key = layers.Dense(head_size, use_bias=False)
+        self.query = layers.Dense(head_size, use_bias=False)
+        self.value = layers.Dense(head_size, use_bias=False)
+        self.dropout = layers.Dropout(DROPOUT)
 
-        self.dropout = nn.Dropout(DROPOUT)
+    def build(self, input_shape):
+        self.tril = tf.linalg.band_part(tf.ones((BLOCK_SIZE, BLOCK_SIZE)), -1, 0)
 
-    def forward(self, x):
-        # input of size (batch, time-step, channels)
-        # output of size (batch, time-step, head size)
-        B,T,C = x.shape
+    def call(self, x, training=False):
+        B = tf.shape(x)[0]
+        T = tf.shape(x)[1]
         k = self.key(x)   # (B,T,hs)
         q = self.query(x) # (B,T,hs)
-        # compute attention scores ("affinities")
-        wei = q @ k.transpose(-2,-1) * k.shape[-1]**-0.5 # (B, T, hs) @ (B, hs, T) -> (B, T, T)
-        wei = wei.masked_fill(self.tril[:T, :T] == 0, float('-inf')) # (B, T, T)
-        wei = F.softmax(wei, dim=-1) # (B, T, T)
-        wei = self.dropout(wei)
-        # perform the weighted aggregation of the values
-        v = self.value(x) # (B,T,hs)
-        out = wei @ v # (B, T, T) @ (B, T, hs) -> (B, T, hs)
+        dk = tf.cast(tf.shape(k)[-1], tf.float32)
+        wei = tf.matmul(q, k, transpose_b=True) * tf.math.rsqrt(dk)
+        mask = self.tril[:T, :T]
+        mask = tf.reshape(mask, (1, T, T))
+        wei = tf.where(mask == 0, tf.fill(tf.shape(wei), float('-inf')), wei)
+        wei = tf.nn.softmax(wei, axis=-1)
+        wei = self.dropout(wei, training=training)
+        v = self.value(x)
+        out = tf.matmul(wei, v)
         return out
 
-class MultiHeadAttention(nn.Module):
-    """ multiple heads of self-attention in parallel """
+
+class MultiHeadAttention(layers.Layer):
+    """Multiple heads of self-attention in parallel"""
 
     def __init__(self, num_heads, head_size):
         super().__init__()
-        self.heads = nn.ModuleList([Head(head_size) for _ in range(num_heads)])
-        self.proj = nn.Linear(head_size * num_heads, N_EMBD)
-        self.dropout = nn.Dropout(DROPOUT)
+        self.heads = [Head(head_size) for _ in range(num_heads)]
+        self.proj = layers.Dense(N_EMBD)
+        self.dropout = layers.Dropout(DROPOUT)
 
-    def forward(self, x):
-        out = torch.cat([h(x) for h in self.heads], dim=-1)
-        out = self.dropout(self.proj(out))
+    def call(self, x, training=False):
+        out = tf.concat([h(x, training=training) for h in self.heads], axis=-1)
+        out = self.proj(out)
+        out = self.dropout(out, training=training)
         return out
 
-class FeedFoward(nn.Module):
-    """ a simple linear layer followed by a non-linearity """
+
+class FeedForward(layers.Layer):
+    """A simple linear layer followed by a non-linearity"""
 
     def __init__(self, n_embd):
         super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(n_embd, 4 * n_embd),
-            nn.ReLU(),
-            nn.Linear(4 * n_embd, n_embd),
-            nn.Dropout(DROPOUT),
-        )
+        self.net = keras.Sequential([
+            layers.Dense(4 * n_embd, activation='relu'),
+            layers.Dense(n_embd),
+            layers.Dropout(DROPOUT),
+        ])
 
-    def forward(self, x):
-        return self.net(x)
+    def call(self, x, training=False):
+        return self.net(x, training=training)
 
-class Block(nn.Module):
-    """ Transformer block: communication followed by computation """
+
+class Block(layers.Layer):
+    """Transformer block: communication followed by computation"""
 
     def __init__(self, n_embd, n_head):
-        # N_EMBD: embedding dimension, N_HEAD: the number of heads we'd like
         super().__init__()
         head_size = n_embd // n_head
         self.sa = MultiHeadAttention(n_head, head_size)
-        self.ffwd = FeedFoward(n_embd)
-        self.ln1 = nn.LayerNorm(n_embd)
-        self.ln2 = nn.LayerNorm(n_embd)
+        self.ffwd = FeedForward(n_embd)
+        self.ln1 = layers.LayerNormalization()
+        self.ln2 = layers.LayerNormalization()
 
-    def forward(self, x):
-        x = x + self.sa(self.ln1(x))
-        x = x + self.ffwd(self.ln2(x))
+    def call(self, x, training=False):
+        x = x + self.sa(self.ln1(x), training=training)
+        x = x + self.ffwd(self.ln2(x), training=training)
         return x
 
-class GPTLanguageModel(nn.Module):
 
+class GPTLanguageModel(keras.Model):
     def __init__(self, vocab_size):
         super().__init__()
-        # each token directly reads off the logits for the next token from a lookup table
-        self.token_embedding_table = nn.Embedding(vocab_size, N_EMBD)
-        self.position_embedding_table = nn.Embedding(BLOCK_SIZE, N_EMBD)
-        self.blocks = nn.Sequential(*[Block(N_EMBD, n_head=N_HEAD) for _ in range(N_LAYER)])
-        self.ln_f = nn.LayerNorm(N_EMBD) # final layer norm
-        self.lm_head = nn.Linear(N_EMBD, vocab_size)
+        self.token_embedding_table = layers.Embedding(vocab_size, N_EMBD)
+        self.position_embedding_table = layers.Embedding(BLOCK_SIZE, N_EMBD)
+        self.blocks = [Block(N_EMBD, N_HEAD) for _ in range(N_LAYER)]
+        self.ln_f = layers.LayerNormalization()
+        self.lm_head = layers.Dense(vocab_size)
 
-        # better init, not covered in the original GPT video, but important, will cover in followup video
-        self.apply(self._init_weights)
-
-    def _init_weights(self, module):
-        if isinstance(module, nn.Linear):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-            if module.bias is not None:
-                torch.nn.init.zeros_(module.bias)
-        elif isinstance(module, nn.Embedding):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-
-    def forward(self, idx, targets=None):
-        B, T = idx.shape
-
-        # idx and targets are both (B,T) tensor of integers
+    def call(self, idx, targets=None, training=False):
+        B = tf.shape(idx)[0]
+        T = tf.shape(idx)[1]
         tok_emb = self.token_embedding_table(idx) # (B,T,C)
-        pos_emb = self.position_embedding_table(torch.arange(T)) # (T,C)
+        pos_indices = tf.range(T)
+        pos_emb = self.position_embedding_table(pos_indices) # (T,C)
+        pos_emb = tf.expand_dims(pos_emb, 0)
         x = tok_emb + pos_emb # (B,T,C)
-        x = self.blocks(x) # (B,T,C)
-        x = self.ln_f(x) # (B,T,C)
+        for block in self.blocks:
+            x = block(x, training=training)
+        x = self.ln_f(x)
         logits = self.lm_head(x) # (B,T,vocab_size)
 
-        if targets is None:
-            loss = None
-        else:
-            B, T, C = logits.shape
-            logits = logits.view(B*T, C)
-            targets = targets.view(B*T)
-            loss = F.cross_entropy(logits, targets)
-
+        loss = None
+        if targets is not None:
+            logits_flat = tf.reshape(logits, [-1, tf.shape(logits)[-1]])
+            targets_flat = tf.reshape(targets, [-1])
+            loss = tf.reduce_mean(
+                tf.keras.losses.sparse_categorical_crossentropy(targets_flat, logits_flat, from_logits=True)
+            )
         return logits, loss
 
     def generate(self, idx, max_new_tokens):
-        # idx is (B, T) array of indices in the current context
         for _ in range(max_new_tokens):
-            # crop idx to the last BLOCK_SIZE tokens
             idx_cond = idx[:, -BLOCK_SIZE:]
-            # get the predictions
-            logits, loss = self(idx_cond)
-            # focus only on the last time step
-            logits = logits[:, -1, :] # becomes (B, C)
-            # apply softmax to get probabilities
-            probs = F.softmax(logits, dim=-1) # (B, C)
-            # sample from the distribution
-            idx_next = torch.multinomial(probs, num_samples=1) # (B, 1)
-            # append sampled index to the running sequence
-            idx = torch.cat((idx, idx_next), dim=1) # (B, T+1)
+            logits, _ = self(idx_cond, training=False)
+            logits = logits[:, -1, :] # (B, vocab_size)
+            probs = tf.nn.softmax(logits, axis=-1)
+            idx_next = tf.random.categorical(tf.math.log(probs), num_samples=1)
+            idx = tf.concat([idx, idx_next], axis=1)
         return idx

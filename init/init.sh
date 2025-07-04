@@ -1,5 +1,5 @@
 #!/bin/bash
-filename="model.pth"
+filename="model.ckpt"
 
 # download training data if it doesn't exist
 echo -e "${BLUE}Initializing training data...${RESET}"

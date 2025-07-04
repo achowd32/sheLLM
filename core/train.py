@@ -6,7 +6,7 @@ import os
 sys.path.append("..")
 from arch import architecture
 
-# Args
+# initialize arguments
 eval_interval = int(sys.argv[1])
 max_iters = int(sys.argv[2])
 filename = sys.argv[3]
@@ -14,7 +14,6 @@ filename = sys.argv[3]
 # Setup
 vocab_size = 128
 base_path = os.path.join("..", filename)
-
 model = architecture.GPTLanguageModel(vocab_size)
 _ = model(tf.zeros((1, 1), dtype=tf.int32))
 optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
@@ -56,6 +55,6 @@ for line in sys.stdin:
         log_ckpt = tf.train.Checkpoint(model=model, optimizer=optimizer)
         log_manager = tf.train.CheckpointManager(log_ckpt, log_path, max_to_keep=1)
         log_manager.save()
-        print(f"Saved checkpoint at iteration {i}", flush=True)
+        print(f"{i}", flush=True)
 
     i += 1

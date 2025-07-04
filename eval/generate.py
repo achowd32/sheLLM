@@ -21,11 +21,6 @@ ckpt = tf.train.Checkpoint(model=model, optimizer=optimizer)
 ckpt_manager = tf.train.CheckpointManager(ckpt, os.path.join("..", filename), max_to_keep=1)
 status = ckpt.restore(ckpt_manager.latest_checkpoint)
 status.expect_partial()
-if ckpt_manager.latest_checkpoint:
-    print(f"Restored from {ckpt_manager.latest_checkpoint}")
-else:
-    print("No checkpoint found, exiting")
-    sys.exit(1)
 
 # read prompt
 prompt = sys.stdin.read().strip()

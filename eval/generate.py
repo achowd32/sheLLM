@@ -2,6 +2,7 @@ import sys
 import tensorflow as tf
 import numpy as np
 import os
+from tensorflow.keras.models import load_model
 
 sys.path.append("..")
 from arch import architecture
@@ -12,15 +13,7 @@ max_tok = int(sys.argv[2])
 vocab_size = 128
 
 # model
-model = architecture.GPTLanguageModel(vocab_size)
-_ = model(tf.zeros((1, 1), dtype=tf.int32))  # Build model
-optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
-
-# restore checkpoint
-ckpt = tf.train.Checkpoint(model=model, optimizer=optimizer)
-ckpt_manager = tf.train.CheckpointManager(ckpt, os.path.join("..", filename), max_to_keep=1)
-status = ckpt.restore(ckpt_manager.latest_checkpoint)
-status.expect_partial()
+model = load_model(filename, custom_objects={"GPTLanguageModel": architecture.GPTLanguageModel})
 
 # read prompt
 prompt = sys.stdin.read().strip()

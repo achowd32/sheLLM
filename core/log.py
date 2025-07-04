@@ -11,16 +11,9 @@ from arch import architecture
 file_name = sys.argv[1]
 eval_iters = int(sys.argv[2])
 vocab_size = 128
-# model
-model = architecture.GPTLanguageModel(vocab_size)
-_ = model(tf.zeros((1, 1), dtype=tf.int32))  # Build model
-optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
 
-# restore checkpoint
-ckpt = tf.train.Checkpoint(model=model, optimizer=optimizer)
-ckpt_manager = tf.train.CheckpointManager(ckpt, file_name, max_to_keep=1)
-status = ckpt.restore(ckpt_manager.latest_checkpoint)
-status.expect_partial()
+# model
+model = load_model(file_name, custom_objects={"GPTLanguageModel": architecture.GPTLanguageModel})
 
 loss_sum = 0.0
 for line in sys.stdin:  # read in one batch at a time

@@ -1,5 +1,5 @@
 #!/bin/bash
-model_file="model"
+model_file="../model.keras"
 prompt=""
 max_tokens=500
 num_evals=1

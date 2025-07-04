@@ -1,5 +1,5 @@
 #!/bin/bash
-filename='model.ckpt'
+filename='model.keras'
 num_samples=$((MAX_ITERS * BATCH_SIZE))
 
 # initiate core pipeline

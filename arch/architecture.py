@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 from tensorflow import keras
 from tensorflow.keras import layers
 from arch.hyperparameters import *
@@ -13,9 +14,9 @@ class Head(layers.Layer):
         self.query = layers.Dense(head_size, use_bias=False)
         self.value = layers.Dense(head_size, use_bias=False)
         self.dropout = layers.Dropout(DROPOUT)
-
-    def build(self, input_shape):
-        self.tril = tf.linalg.band_part(tf.ones((BLOCK_SIZE, BLOCK_SIZE)), -1, 0)
+        # precompute lower-triangular mask as constant
+        mask = np.tril(np.ones((BLOCK_SIZE, BLOCK_SIZE), dtype=np.float32))
+        self.tril = tf.constant(mask, dtype=tf.float32)
 
     def call(self, x, training=False):
         B = tf.shape(x)[0]
@@ -24,9 +25,12 @@ class Head(layers.Layer):
         q = self.query(x) # (B,T,hs)
         dk = tf.cast(tf.shape(k)[-1], tf.float32)
         wei = tf.matmul(q, k, transpose_b=True) * tf.math.rsqrt(dk)
-        mask = self.tril[:T, :T]
-        mask = tf.reshape(mask, (1, T, T))
-        wei = tf.where(mask == 0, tf.fill(tf.shape(wei), float('-inf')), wei)
+        # apply mask
+        mask = self.tril[:T, :T]            # (T,T)
+        mask = tf.reshape(mask, (1, T, T))  # (1,T,T)
+        wei = tf.where(mask == 0,
+                       tf.fill(tf.shape(wei), float('-inf')),
+                       wei)
         wei = tf.nn.softmax(wei, axis=-1)
         wei = self.dropout(wei, training=training)
         v = self.value(x)
@@ -83,35 +87,51 @@ class Block(layers.Layer):
 
 
 class GPTLanguageModel(keras.Model):
-    def __init__(self, vocab_size):
-        super().__init__()
-        self.token_embedding_table = layers.Embedding(vocab_size, N_EMBD)
+    def __init__(self, vocab_size, **kwargs):
+        # vocab_size is required argument; pass other kwargs (e.g., trainable, dtype) to base
+        super().__init__(**kwargs)
+        self.vocab_size = vocab_size
+        self.token_embedding_table = layers.Embedding(self.vocab_size, N_EMBD)
         self.position_embedding_table = layers.Embedding(BLOCK_SIZE, N_EMBD)
         self.blocks = [Block(N_EMBD, N_HEAD) for _ in range(N_LAYER)]
         self.ln_f = layers.LayerNormalization()
         self.lm_head = layers.Dense(vocab_size)
 
-    def call(self, idx, targets=None, training=False):
-        B = tf.shape(idx)[0]
+    def call(self, idx, training=False):
+        # forward pass returns logits only
         T = tf.shape(idx)[1]
-        tok_emb = self.token_embedding_table(idx) # (B,T,C)
+        tok_emb = self.token_embedding_table(idx)  # (B,T,C)
         pos_indices = tf.range(T)
-        pos_emb = self.position_embedding_table(pos_indices) # (T,C)
+        pos_emb = self.position_embedding_table(pos_indices)  # (T,C)
         pos_emb = tf.expand_dims(pos_emb, 0)
-        x = tok_emb + pos_emb # (B,T,C)
+        x = tok_emb + pos_emb  # (B,T,C)
         for block in self.blocks:
             x = block(x, training=training)
         x = self.ln_f(x)
-        logits = self.lm_head(x) # (B,T,vocab_size)
+        logits = self.lm_head(x)  # (B,T,vocab_size)
+        return logits
 
-        loss = None
-        if targets is not None:
-            logits_flat = tf.reshape(logits, [-1, tf.shape(logits)[-1]])
-            targets_flat = tf.reshape(targets, [-1])
-            loss = tf.reduce_mean(
-                tf.keras.losses.sparse_categorical_crossentropy(targets_flat, logits_flat, from_logits=True)
-            )
-        return logits, loss
+    def compute_loss(self, logits, targets):
+        # compute mean sparse categorical loss over batch
+        logits_flat = tf.reshape(logits, [-1, tf.shape(logits)[-1]])
+        targets_flat = tf.reshape(targets, [-1])
+        return tf.reduce_mean(
+            tf.keras.losses.sparse_categorical_crossentropy(targets_flat, logits_flat, from_logits=True)
+        )
+
+    def get_config(self):
+        # include vocab_size in config for serialization
+        config = super().get_config()
+        config.update({
+            'vocab_size': self.vocab_size,
+        })
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        # extract vocab_size and pass remaining args to constructor
+        vocab_size = config.pop('vocab_size')
+        return cls(vocab_size=vocab_size, **config)
 
     def generate(self, idx, max_new_tokens):
         for _ in range(max_new_tokens):

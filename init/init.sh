@@ -1,5 +1,5 @@
 #!/bin/bash
-filename="model.ckpt"
+filename="model.keras"
 
 # download training data if it doesn't exist
 echo -e "${BLUE}Initializing training data...${RESET}"

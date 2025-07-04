@@ -14,4 +14,4 @@ cd init; ./init.sh
 
 cd ../core; ./core.sh
 
-#cd ../eval; ./eval.sh
+cd ../eval; ./eval.sh

@@ -1,5 +1,5 @@
 #!/bin/bash
-model_file="model.pth"
+model_file="model"
 prompt=""
 max_tokens=500
 num_evals=1
@@ -16,10 +16,10 @@ iters=0
 while [ $iters -lt $num_evals ]; do
     # generate text sample and save it; will be used for evaluations
     echo -ne "$prompt" | ./encode.sh | python3 generate.py $model_file $max_tokens | ./decode.sh > sample.txt
-
+    
     # load the sample text and reference text into variables
     sample=$(cat sample.txt)
-    reference=$(head -c +"$max_tokens" ../data/val.txt)
+    reference=$(head -c "$max_tokens" ../data/val.txt)
 
     # perform a simple language evaluation: number of language errors in sample
     lang_score=$(python3 lang_eval.py "$sample" 2>&1 | grep "Numerrors: " | awk '{print $2}')

@@ -43,12 +43,22 @@ class MultiHeadAttention(layers.Layer):
 
     def __init__(self, num_heads, head_size):
         super().__init__()
-        self.heads = [Head(head_size) for _ in range(num_heads)]
+        # register each head as its own attribute for proper tracking
+        self.heads = []
+        for i in range(num_heads):
+            head = Head(head_size)
+            setattr(self, f"head_{i}", head)
+            self.heads.append(head)
         self.proj = layers.Dense(N_EMBD)
         self.dropout = layers.Dropout(DROPOUT)
 
     def call(self, x, training=False):
-        out = tf.concat([h(x, training=training) for h in self.heads], axis=-1)
+        # apply each head
+        head_outputs = []
+        for i in range(len(self.heads)):
+            head_layer = getattr(self, f"head_{i}")
+            head_outputs.append(head_layer(x, training=training))
+        out = tf.concat(head_outputs, axis=-1)
         out = self.proj(out)
         out = self.dropout(out, training=training)
         return out
@@ -87,58 +97,62 @@ class Block(layers.Layer):
 
 
 class GPTLanguageModel(keras.Model):
+    """GPT language model with proper sublayer tracking"""
+
     def __init__(self, vocab_size, **kwargs):
-        # vocab_size is required argument; pass other kwargs (e.g., trainable, dtype) to base
         super().__init__(**kwargs)
         self.vocab_size = vocab_size
         self.token_embedding_table = layers.Embedding(self.vocab_size, N_EMBD)
         self.position_embedding_table = layers.Embedding(BLOCK_SIZE, N_EMBD)
-        self.blocks = [Block(N_EMBD, N_HEAD) for _ in range(N_LAYER)]
+        # register each block as its own attribute for proper tracking
+        self.blocks = []
+        for i in range(N_LAYER):
+            block = Block(N_EMBD, N_HEAD)
+            setattr(self, f"block_{i}", block)
+            self.blocks.append(block)
         self.ln_f = layers.LayerNormalization()
         self.lm_head = layers.Dense(vocab_size)
 
     def call(self, idx, training=False):
-        # forward pass returns logits only
         T = tf.shape(idx)[1]
         tok_emb = self.token_embedding_table(idx)  # (B,T,C)
         pos_indices = tf.range(T)
         pos_emb = self.position_embedding_table(pos_indices)  # (T,C)
         pos_emb = tf.expand_dims(pos_emb, 0)
         x = tok_emb + pos_emb  # (B,T,C)
-        for block in self.blocks:
-            x = block(x, training=training)
+        for i in range(len(self.blocks)):
+            x = getattr(self, f"block_{i}")(x, training=training)
         x = self.ln_f(x)
         logits = self.lm_head(x)  # (B,T,vocab_size)
         return logits
 
     def compute_loss(self, logits, targets):
-        # compute mean sparse categorical loss over batch
         logits_flat = tf.reshape(logits, [-1, tf.shape(logits)[-1]])
         targets_flat = tf.reshape(targets, [-1])
         return tf.reduce_mean(
-            tf.keras.losses.sparse_categorical_crossentropy(targets_flat, logits_flat, from_logits=True)
+            tf.keras.losses.sparse_categorical_crossentropy(
+                targets_flat, logits_flat, from_logits=True
+            )
         )
 
     def get_config(self):
-        # include vocab_size in config for serialization
         config = super().get_config()
-        config.update({
-            'vocab_size': self.vocab_size,
-        })
+        config.update({'vocab_size': self.vocab_size})
         return config
 
     @classmethod
     def from_config(cls, config):
-        # extract vocab_size and pass remaining args to constructor
         vocab_size = config.pop('vocab_size')
         return cls(vocab_size=vocab_size, **config)
 
     def generate(self, idx, max_new_tokens):
         for _ in range(max_new_tokens):
             idx_cond = idx[:, -BLOCK_SIZE:]
-            logits, _ = self(idx_cond, training=False)
-            logits = logits[:, -1, :] # (B, vocab_size)
+            logits = self(idx_cond, training=False)
+            logits = logits[:, -1, :]
             probs = tf.nn.softmax(logits, axis=-1)
-            idx_next = tf.random.categorical(tf.math.log(probs), num_samples=1)
+            idx_next = tf.random.categorical(
+                tf.math.log(probs), num_samples=1, dtype=tf.int32
+            )
             idx = tf.concat([idx, idx_next], axis=1)
         return idx

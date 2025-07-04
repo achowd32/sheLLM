@@ -10,7 +10,7 @@ BLUE='\033[1;34m'
 RESET='\033[0m'
 set +o allexport
 
-cd init; ./init.sh
+cd data; ./data.sh
 
 cd ../core; ./core.sh
 

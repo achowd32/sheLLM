@@ -9,7 +9,8 @@ from arch import architecture
 # initialize arguments
 eval_interval = int(sys.argv[1])
 max_iters = int(sys.argv[2])
-filename = sys.argv[3]
+learning_rate = float(sys.argv[3])
+filename = sys.argv[4]
 
 # Setup
 vocab_size = 128
@@ -17,12 +18,8 @@ base_path = os.path.join("..", filename)
 model = architecture.GPTLanguageModel(vocab_size)
 _ = model(tf.zeros((1, 1), dtype=tf.int32))
 optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
-
-# Checkpoint logic
 ckpt = tf.train.Checkpoint(model=model, optimizer=optimizer)
 ckpt_manager = tf.train.CheckpointManager(ckpt, base_path, max_to_keep=1)
-status = ckpt.restore(ckpt_manager.latest_checkpoint)
-status.expect_partial()
 
 # Graph-mode training step
 @tf.function

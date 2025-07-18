@@ -12,48 +12,16 @@ try {
 }
 
 // initialize arguments
-const evalInterval = parseInt(process.argv[2]);
-const maxIters = parseInt(process.argv[3]);
-const learningRate = parseFloat(process.argv[4]);
-const filename = process.argv[5];
-const batch_size = 12;
+const evalInterval = parseInt(process.argv[1]);
+const maxIters = parseInt(process.argv[2]);
+const learningRate = parseFloat(process.argv[3]);
+const filename = process.argv[4];
 const vocabSize = 128;
 
-// setup, initialize model with dummy data to build the graph
+// initialize model and optimizer
 const model = new GPTLanguageModel(vocabSize);
-const dummyInput = tf.zeros([1, 1], 'int32');
-model.call(dummyInput, { training: false });
-dummyInput.dispose();
-
-// create optimizer
 const optimizer = tf.train.adam(learningRate);
-
-// training step function
-function trainStep(xb, yb) {
-    return tf.tidy(() => {
-        const f = () => {
-            const logits = model.call(xb, { training: true });
-            
-            // reshape for loss computation
-            const logitsFlat = tf.reshape(logits, [-1, vocabSize]);
-            const targetsFlat = tf.reshape(yb, [-1]);
-            
-            // compute sparse categorical crossentropy loss
-            const loss = tf.losses.softmaxCrossEntropy(
-                tf.oneHot(targetsFlat, vocabSize), 
-                logitsFlat
-            );
-            
-            return loss;
-        };
-        
-        // Compute gradients and apply them
-        const { value: loss, grads } = tf.variableGrads(f);
-        optimizer.applyGradients(grads);
-        
-        return loss;
-    });
-}
+model.build();
 
 // create readline interface for stdin
 const rl = createInterface({
@@ -72,18 +40,18 @@ rl.on('line', async (line) => {
     const yb = tf.tensor2d(batch.batch_y, undefined, 'int32');
     
     // training step
-    const loss = trainStep(xb, yb);
-    const lossValue = loss.dataSync()[0];
-    
-    // log periodically
-    if (i % evalInterval === 0 || i === maxIters - 1) {
-        console.log(`${i} loss: ${lossValue.toFixed(4)}`);
-    }
+    optimizer.minimize(() => {
+      const loss = model.loss(xb, yb);
+      // log periodically
+      if (i % evalInterval === 0 || i === maxIters - 1) {
+          console.log(`${i} loss: ${loss}`);
+      }
+      return loss;
+    });
     
     // clean up tensors
     xb.dispose();
     yb.dispose();
-    loss.dispose();
 
     i++;
 });
@@ -91,4 +59,17 @@ rl.on('line', async (line) => {
 // handle end of input
 rl.on('close', async () => {
     console.log('Training completed');
+    // Blank prompt: batch of 1, 1 token (can be zeros or arbitrary starter token)
+    let idx = tf.zeros([1, 1], 'int32');
+    const maxNewTokens = 200;
+
+    // Generate tokens
+    const generatedIdx = model.generate(idx, maxNewTokens);
+
+    // Print output
+    console.log('Generated token indices:', Array.from(generatedIdx.dataSync()).join(' '));
+
+    // Cleanup
+    idx.dispose();
+    generatedIdx.dispose();
 });

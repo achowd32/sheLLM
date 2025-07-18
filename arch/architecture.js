@@ -2,18 +2,19 @@
 
 import '@tensorflow/tfjs-node';
 import * as tf from '@tensorflow/tfjs';
+import * as hyper from './hyperparameters.js';
 
 // hyperparameters
-const BATCH_SIZE = 12;
-const BLOCK_SIZE = 64;
-const MAX_ITERS = 2000;
-const N_EMBD = 128;
-const N_LAYER = 4;
-const N_HEAD = 4;
-const HEAD_SIZE = 16;
-const LEARNING_RATE = 0.0003;
-const EVAL_ITERS = 50;
-const DROPOUT = 0.0;
+const batchSize = hyper.BATCH_SIZE;
+const blockSize = hyper.BLOCK_SIZE;
+const maxIters = hyper.MAX_ITERS ;
+const nEmbd = hyper.N_EMBD;
+const nLayer = hyper.N_LAYER;
+const nHead = hyper.N_HEAD;
+const headSize = hyper.HEAD_SIZE;
+const learningRate = hyper.LEARNING_RATE;
+const evalIters = hyper.EVAL_INTERVAL;
+const dropout = hyper.DROPOUT;
 
 // ------------------- MODEL DEFINITIONS ------------------------
 
@@ -33,13 +34,13 @@ class Identity extends tf.layers.Layer{
 
 // define Head: one single head of self attention
 class Head extends tf.layers.Layer{
-  constructor(headSize, vocabSize){
+  constructor(vocabSize){
     super({});
     this.vocabSize = vocabSize;
     this.headSize = headSize;
-    this.nEmbd = N_EMBD;
-    this.blockSize = BLOCK_SIZE;
-    this.dropRate = DROPOUT;
+    this.nEmbd = nEmbd;
+    this.blockSize = blockSize;
+    this.dropRate = dropout;
 
     // create mask template to be applied after computing self attention scores
     const ones = tf.ones([this.blockSize, this.blockSize]);
@@ -110,18 +111,18 @@ class Head extends tf.layers.Layer{
 
 // define MultiHeadAttention
 class MultiHeadAttention extends tf.layers.Layer {
-  constructor(numHeads, headSize, vocabSize) {
+  constructor(vocabSize) {
     super({});
     this.vocabSize = vocabSize;
-    this.numHeads = numHeads;
+    this.numHeads = nHead;
     this.headSize = headSize;
-    this.nEmbd = N_EMBD;
-    this.blockSize = BLOCK_SIZE;
-    this.dropRate = DROPOUT;
+    this.nEmbd = nEmbd;
+    this.blockSize = blockSize;
+    this.dropRate = dropout;
 
     // instantiate heads
-    this.heads = Array.from({length: numHeads},
-      () => new Head(this.headSize, vocabSize));
+    this.heads = Array.from({length: this.numHeads},
+      () => new Head(vocabSize));
   }
 
   build() {
@@ -161,11 +162,10 @@ class MultiHeadAttention extends tf.layers.Layer {
 
 // define FeedForward layer
 class FeedForward extends tf.layers.Layer {
-  constructor(nEmbd){
+  constructor(){
     super({});
-    // dropout layer
     this.nEmbd = nEmbd;
-    this.dropRate = DROPOUT;
+    this.dropRate = dropout;
   }
 
   build(){
@@ -197,7 +197,7 @@ class FeedForward extends tf.layers.Layer {
 
 // define Transformer block
 class Block extends tf.layers.Layer{
-  constructor(nEmbd, nHead, vocabSize){
+  constructor(vocabSize){
     super({});
     this.nEmbd = nEmbd;
     this.nHead = nHead;
@@ -206,10 +206,10 @@ class Block extends tf.layers.Layer{
 
   build(){
     // create self attention layer
-    this.sa = new MultiHeadAttention(this.nHead, this.headSize, this.vocabSize);
+    this.sa = new MultiHeadAttention(this.vocabSize);
 
     // create feed forward layer
-    this.ffwd = new FeedForward(this.nEmbd);
+    this.ffwd = new FeedForward();
 
     // create layerNorm layers, or use the Identity layer to avoid layerNorm
     //this.ln1 = tf.layers.layerNormalization();
@@ -235,10 +235,10 @@ class GPTLanguageModel extends tf.layers.Layer {
   constructor(vocabSize){
     super({});
     this.vocabSize = vocabSize;
-    this.nLayer = N_LAYER;
-    this.nEmbd = N_EMBD;
-    this.nHead = N_HEAD;
-    this.blockSize = BLOCK_SIZE;
+    this.nLayer = nLayer;
+    this.nEmbd = nEmbd;
+    this.nHead = nHead;
+    this.blockSize = blockSize;
   }
 
   build(){
@@ -259,7 +259,7 @@ class GPTLanguageModel extends tf.layers.Layer {
     // array of transformer blocks
     this.blockArr = [];
     for(let i  = 0; i < this.nLayer; i++){
-      const blk = new Block(this.nEmbd, this.nHead, this.vocabSize);
+      const blk = new Block(this.vocabSize);
       blk.build();
       this.blockArr.push(blk);
     }

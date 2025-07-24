@@ -4,6 +4,7 @@ import '@tensorflow/tfjs-node';
 import * as tf from '@tensorflow/tfjs';
 import * as hyper from './hyperparameters.js';
 
+// TODO: FIX EVAL_INTERVAL VS EVAL_ITERS
 // hyperparameters
 const BATCH_SIZE = hyper.BATCH_SIZE;
 const BLOCK_SIZE = hyper.BLOCK_SIZE;
@@ -229,6 +230,7 @@ class GPTLanguageModel extends tf.layers.Layer {
   }
   
   loss(inputs, targets){
+    const returnLoss = tf.tidy(() => { 
       // get logits
       const logitsT = this.apply(inputs);
 
@@ -240,8 +242,9 @@ class GPTLanguageModel extends tf.layers.Layer {
       const oneHotTargets = tf.oneHot(flatTargets, this.vocabSize);
 
       // calculate and return loss
-      const loss = tf.losses.softmaxCrossEntropy(oneHotTargets, flatLogits);
-      return loss;
+      return tf.losses.softmaxCrossEntropy(oneHotTargets, flatLogits);
+    });
+    return returnLoss;
   }
 
   generate(context, maxTokens){

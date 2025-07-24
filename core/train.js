@@ -26,25 +26,25 @@ const rl = createInterface({
 let i = 0;
 
 rl.on('line', async (line) => {
-    // parse input and create tensors
-    const batch = JSON.parse(line);
-    const xb = tf.tensor2d(batch.batch_x, undefined, 'int32');
-    const yb = tf.tensor2d(batch.batch_y, undefined, 'int32');
-    
-    // training step
-    optimizer.minimize(() => {
-      const loss = model.loss(xb, yb);
-      // log periodically
-      if (i % evalInterval == 0 || i == maxIters - 1) {
-          model.save(`../logs/${i}`);
-          console.log(i);
-      }
-      return loss;
-    });
-    
-    // clean up tensors
-    xb.dispose();
-    yb.dispose();
+  // parse input and create tensors
+  const batch = JSON.parse(line);
+  const xb = tf.tensor2d(batch.batch_x, undefined, 'int32');
+  const yb = tf.tensor2d(batch.batch_y, undefined, 'int32');
+  
+  // training step
+  optimizer.minimize(() => {
+    const loss = model.loss(xb, yb);
+    // log periodically
+    if (i % evalInterval == 0 || i == maxIters - 1) {
+        model.save(`../logs/${i}`);
+        console.log(i);
+    }
+    return loss;
+  });
+  
+  // clean up tensors
+  xb.dispose();
+  yb.dispose();
 
-    i++;
+  i++;
 });

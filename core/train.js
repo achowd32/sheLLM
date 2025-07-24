@@ -36,7 +36,8 @@ rl.on('line', async (line) => {
       const loss = model.loss(xb, yb);
       // log periodically
       if (i % evalInterval == 0 || i == maxIters - 1) {
-          console.log(`${i} loss: ${loss}`);
+          model.save(`../logs/${i}`);
+          console.log(i);
       }
       return loss;
     });
@@ -46,20 +47,4 @@ rl.on('line', async (line) => {
     yb.dispose();
 
     i++;
-});
-
-// handle end of input
-rl.on('close', async () => {
-    console.log('Training completed');
-    // blank prompt: batch of 1, 1 token
-    let idx = tf.zeros([1, 1], 'int32');
-    const maxNewTokens = 200;
-
-    // generate tokens and print
-    const generatedIdx = model.generate(idx, maxNewTokens);
-    console.log(Array.from(generatedIdx.dataSync()).join(' '));
-
-    // Cleanup
-    idx.dispose();
-    generatedIdx.dispose();
 });

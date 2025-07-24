@@ -5,229 +5,208 @@ import * as tf from '@tensorflow/tfjs';
 import * as hyper from './hyperparameters.js';
 
 // hyperparameters
-const batchSize = hyper.BATCH_SIZE;
-const blockSize = hyper.BLOCK_SIZE;
-const maxIters = hyper.MAX_ITERS ;
-const nEmbd = hyper.N_EMBD;
-const nLayer = hyper.N_LAYER;
-const nHead = hyper.N_HEAD;
-const headSize = hyper.HEAD_SIZE;
-const learningRate = hyper.LEARNING_RATE;
-const evalIters = hyper.EVAL_INTERVAL;
-const dropout = hyper.DROPOUT;
+const BATCH_SIZE = hyper.BATCH_SIZE;
+const BLOCK_SIZE = hyper.BLOCK_SIZE;
+const MAX_ITERS = hyper.MAX_ITERS ;
+const N_EMBD = hyper.N_EMBD;
+const N_LAYER = hyper.N_LAYER;
+const N_HEAD = hyper.N_HEAD;
+const HEAD_SIZE = hyper.HEAD_SIZE;
+const LEARNING_RATE = hyper.LEARNING_RATE;
+const EVAL_INTERVAL = hyper.EVAL_INTERVAL;
+const DROPOUT = hyper.DROPOUT;
+// ------------------- LAYER DEFINITIONS ------------------------
+
+// layer to perform the scaling operation in Head
+class ScaleLayer extends tf.layers.Layer {
+  constructor(config) {
+    super(config);
+    this.scale = config.scale;
+  }
+  call(inputs) {
+    const x = Array.isArray(inputs) ? inputs[0] : inputs;
+    return tf.mul(x, tf.scalar(this.scale));
+  }
+  getConfig() {
+    return Object.assign(super.getConfig(), {scale: this.scale});
+  }
+  static get className() { return 'ScaleLayer'; }
+}
+tf.serialization.registerClass(ScaleLayer);
+
+// layer to perform the masking operation in Head
+class CausalMask extends tf.layers.Layer {
+  constructor(config) {
+    super(config);
+    this.blockSize = config.blockSize;
+  }
+  build(inputShape) {
+    this.tril = tf.linalg.bandPart(tf.ones([this.blockSize, this.blockSize], 'bool'), -1, 0);  // shape [Tmax, Tmax]
+    super.build(inputShape);
+  }
+  call(inputs/*, kwargs*/) {
+    const scores = Array.isArray(inputs) ? inputs[0] : inputs; // [B, T, T]
+    const shape = scores.shape; // e.g. [1, 10, 10]
+    const T = shape[1]; // 10 at runtime
+
+    // slice out the [T, T] submatrix
+    const mask2d = this.tril.slice([0, 0], [T, T]); // [T, T]
+    const mask = mask2d.logicalNot().expandDims(0); // [1, T, T]
+
+    const negInf = tf.fill(shape, Number.NEGATIVE_INFINITY); // [1, T, T]
+    return tf.where(mask, negInf, scores); // [1, T, T]
+  }
+  getConfig() {
+    return Object.assign(super.getConfig(), {blockSize: this.blockSize});
+  }
+  static get className() { return 'CausalMask'; }
+}
+tf.serialization.registerClass(CausalMask);
 
 // ------------------- MODEL DEFINITIONS ------------------------
 
-// define Identity class
+// define function that returns Identity layer as a tf.model
 // can be used to replace the time intensive layerNorm operation
-class Identity extends tf.layers.Layer{
-  constructor(){
-    super({});
-  }
-
-  call(input){
-    return input
-  }
-
-  getClassName(){ return 'Identity'; }
+function createIdentity() {
+  const input = tf.input({shape: [null, N_EMBD]});
+  // identity function - just return the input as output
+  return tf.model({inputs: input, outputs: input});
 }
 
-// define Head: one single head of self attention
-class Head extends tf.layers.Layer{
-  constructor(vocabSize){
-    super({});
-    this.vocabSize = vocabSize;
-    this.headSize = headSize;
-    this.nEmbd = nEmbd;
-    this.blockSize = blockSize;
-    this.dropRate = dropout;
-
-    // create mask template to be applied after computing self attention scores
-    const ones = tf.ones([this.blockSize, this.blockSize]);
-    this.tril = tf.linalg.bandPart(ones, -1, 0);
-  }
-
-  build(){
-    // key layer
-    this.key = tf.layers.dense({
-      inputDim: this.nEmbd,
-      units: this.headSize, // 'units' are the output dimensions
-      useBias: false,
-    });
-    
-    // query layer
-    this.query = tf.layers.dense({
-      inputDim: this.nEmbd,
-      units: this.headSize, 
-      useBias: false,
-    });
-
-    // value layer
-    this.value = tf.layers.dense({
-      inputDim: this.nEmbd,
-      units: this.headSize,
-      useBias: false,
-    });
-
-    // dropout layer
-    this.dropout = tf.layers.dropout({rate: this.dropRate});
-
-    super.build();
-  }
-
-  call(x){
-    // get dimensions of input embeddings
-    const [B, T, C] = x.shape;
-
-    // pass embeddings through key and query layers
-    const k = this.key.apply(x); // (B, T, headSize)
-    const q = this.query.apply(x); // (B, T, headSize)
-    
-    // compute self attention scores
-    const k_t = tf.transpose(k, [0, 2, 1]); // (B, headSize, T)
-    let wei = tf.matMul(q, k_t); // (B, T, headSize) @ (B, headSize, T) = (B, T, T)
-    wei = wei.mul(tf.scalar(1 / Math.sqrt(this.headSize))); // scale by 1/sqrt(headSize)
-
-    // create mask
-    const tril = this.tril.slice([0, 0], [T, T]); // (T, T)
-    const mask = tril.equal(0).expandDims(0); // (1, T, T)
-    const negInf = tf.fill(wei.shape, Number.NEGATIVE_INFINITY);
-
-    // apply mask
-    wei = tf.where(mask, negInf, wei); // where mask is true, set -inf
-    wei = tf.softmax(wei, -1); // (B, T, T) 
-
-    // apply dropout
-    wei = this.dropout.apply(wei);
-
-    // perform weighted aggregation of the values
-    const v = this.value.apply(x); // (B, T, headSize)
-    const out = tf.matMul(wei, v); // (B, T, T) @ (B, T, headSize) = (B, T, headSize)
-    return out;
-  }
-
-  getClassName() { return 'Head'; }
+// define function that returns a LayerNorm layer as a tf.model
+function createLayerNorm() {
+  const input = tf.input({shape: [null, N_EMBD]});
+  const normalized = tf.layers.layerNormalization().apply(input);
+  return tf.model({inputs: input, outputs: normalized});
 }
 
-// define MultiHeadAttention
-class MultiHeadAttention extends tf.layers.Layer {
-  constructor(vocabSize) {
-    super({});
-    this.vocabSize = vocabSize;
-    this.numHeads = nHead;
-    this.headSize = headSize;
-    this.nEmbd = nEmbd;
-    this.blockSize = blockSize;
-    this.dropRate = dropout;
+// define function that returns a Head layer as a tf.model
+function createHead(headSize) {
+  // create symbolic input
+  const input = tf.input({shape: [null, N_EMBD], dtype: 'float32'});
 
-    // instantiate heads
-    this.heads = Array.from({length: this.numHeads},
-      () => new Head(vocabSize));
-  }
+  // create key, query, value embeddings; (B, T, headSize)
+  const key   = tf.layers.dense({units: headSize, useBias: false}).apply(input);
+  const query = tf.layers.dense({units: headSize, useBias: false}).apply(input);
+  const value = tf.layers.dense({units: headSize, useBias: false}).apply(input);
 
-  build() {
-    // forward the build call to each head
-    this.heads.forEach(head => head.build());
-
-    // projection layer
-    this.proj = tf.layers.dense({
-      inputDim: this.nEmbd,
-      units: this.nEmbd,
-    });
-
-    // dropout layer
-    this.dropout = tf.layers.dropout({rate: this.dropRate});
-
-    super.build();
-  }
-
-  call(x) {
-    // apply each head in parallel
-    let out = this.heads.map(head => head.apply(x));  
-
-    // concat each headOut value along the feature axis 
-    out = tf.concat(out, 2);
-
-    // apply projection layer
-    out = this.proj.apply(out);
-
-    // apply dropout
-    out = this.dropout.apply(out);
-
-    return out;
-  }
-
-  getClassName() { return 'MultiHeadAttention'; }
-}
-
-// define FeedForward layer
-class FeedForward extends tf.layers.Layer {
-  constructor(){
-    super({});
-    this.nEmbd = nEmbd;
-    this.dropRate = dropout;
-  }
-
-  build(){
-    this.expand = tf.layers.dense({
-      inputDim: this.nEmbd,
-      units: 4 * this.nEmbd,
-      activation: 'relu',
-    });
-
-    this.compress = tf.layers.dense({
-      inputDim: 4 * this.nEmbd,
-      units: this.nEmbd,
-    });
-
-    this.dropout = tf.layers.dropout({rate: this.dropRate});
-
-    super.build();
-  }
+  // compute self attention scores
+  const keyT = tf.layers.permute({dims: [2, 1]}).apply(key); // (B, headSize, T)
+  const scores = tf.layers.dot({axes: [2, 1]}).apply([query, keyT]); // (B, T, headSize) @ (B, headSize, T) = (B, T, T)
+  const scaled = new ScaleLayer({scale: 1/Math.sqrt(headSize)}).apply(scores); // scale by 1/sqrt(headSize)
   
-  call(inputs){
-    let out = this.expand.apply(inputs);
-    out = this.compress.apply(out);
-    out = this.dropout.apply(out);
-    return out;
-  }
+  // apply mask
+  const masked = new CausalMask({blockSize: BLOCK_SIZE}).apply(scaled);
+  const weights = tf.layers.activation({activation: 'softmax'}).apply(masked);
 
-  getClassName(){ return 'FeedForward'; }
+  // apply dropout
+  const dropped = tf.layers.dropout({rate: DROPOUT}).apply(weights);
+
+  // perform weighted aggregation of the values
+  const out = tf.layers.dot({axes: [2, 1]}).apply([dropped, value]);
+
+  // build the model
+  return tf.model({inputs: input, outputs: out});
 }
 
-// define Transformer block
-class Block extends tf.layers.Layer{
-  constructor(vocabSize){
-    super({});
-    this.nEmbd = nEmbd;
-    this.nHead = nHead;
-    this.headSize = Math.floor(nEmbd / nHead);
-  }
-
-  build(){
-    // create self attention layer
-    this.sa = new MultiHeadAttention(this.vocabSize);
-
-    // create feed forward layer
-    this.ffwd = new FeedForward();
-
-    // create layerNorm layers, or use the Identity layer to avoid layerNorm
-    //this.ln1 = tf.layers.layerNormalization();
-    //this.ln2 = tf.layers.layerNormalization();
-    this.ln1 = new Identity();
-    this.ln2 = new Identity();
-
-    super.build();
-  }
-
-  call(input){
-    // perform computations with residual
-    let out = input.add(this.sa.apply(this.ln1.apply(input))); // input + sa(ln1(input))
-    out = out.add(this.ffwd.apply(this.ln2.apply(out))); // out + ffwd(ln2(out))
-    return out;
-  }
+// define function that returns a FeedForward layer as a tf.model
+function createFeedForward() {
+  const input = tf.input({shape: [null, N_EMBD]});
   
-  getClassName(){ return 'Block'; }
+  // expansion layer with ReLU activation
+  const expanded = tf.layers.dense({
+    units: 4 * N_EMBD,
+    activation: 'relu',
+  }).apply(input);
+  
+  // compression layer
+  const compressed = tf.layers.dense({
+    units: N_EMBD,
+  }).apply(expanded);
+  
+  // dropout layer
+  const output = tf.layers.dropout({rate: DROPOUT}).apply(compressed);
+  return tf.model({inputs: input, outputs: output});
+}
+
+// function that returns MultiHeadAttention as a tf.model
+function createMultiHeadAttention(numHeads, headSize) {
+  const input = tf.input({shape: [null, N_EMBD]});
+
+  // instantiate heads
+  const heads = Array.from({length: numHeads},
+    () => createHead(headSize));
+
+  // apply each head in parallel
+  let out = heads.map(head => head.apply(input));
+
+  // concat each headOut value along the feature axis 
+  out = tf.layers.concatenate({axis: 2}).apply(out);
+
+  // apply projection layer
+  out = tf.layers.dense({units: N_EMBD}).apply(out);
+
+  // apply dropout
+  out = tf.layers.dropout({rate: DROPOUT}).apply(out);
+
+  return tf.model({inputs: input, outputs: out});
+}
+
+// function that returns a Transformer Block as a tf.model
+function createBlock(nHead) {
+  const input = tf.input({shape: [null, N_EMBD]});
+  const headSize = Math.floor(N_EMBD / nHead);
+
+  // create self attention layer
+  const sa = createMultiHeadAttention(nHead, headSize);
+
+  // create feed forward layer
+  const ffwd = createFeedForward();
+
+  // create layerNorm layers, or use the Identity layer to avoid layerNorm
+  // const ln1 = createLayerNorm();
+  // const ln2 = createLayerNorm();
+  const ln1 = createIdentity();
+  const ln2 = createIdentity();
+
+  // perform computations with residual
+  const ln1Out = ln1.apply(input);
+  const saOut = sa.apply(ln1Out);
+  const residual1 = tf.layers.add().apply([input, saOut]); // input + sa(ln1(input))
+  
+  const ln2Out = ln2.apply(residual1);
+  const ffwdOut = ffwd.apply(ln2Out);
+  const residual2 = tf.layers.add().apply([residual1, ffwdOut]); // residual1 + ffwd(ln2(residual1))
+
+  return tf.model({inputs: input, outputs: residual2});
+}
+
+// function that returns a complete GPT Language Model as a tf.model (without position embeddings)
+function createGPT(vocabSize) {
+  const input = tf.input({shape: [BLOCK_SIZE], dtype: 'int32'});
+
+  // token embedding table
+  const tokEmbd = tf.layers.embedding({
+    inputDim: vocabSize,
+    outputDim: N_EMBD,
+  }).apply(input); // (B, T, N_EMBD)
+
+  // apply all transformer blocks sequentially
+  let blockEmbd = tokEmbd;
+  for(let i = 0; i < N_LAYER; i++){
+    const block = createBlock(N_HEAD);
+    blockEmbd = block.apply(blockEmbd);
+  }
+
+  // final layer normalization
+  const normalized = tf.layers.layerNormalization().apply(blockEmbd);
+
+  // linear layer to vocabulary size
+  const logits = tf.layers.dense({
+    units: vocabSize,
+  }).apply(normalized); // (B, T, vocabSize)
+
+  return tf.model({inputs: input, outputs: logits});
 }
 
 // define GPT language model
@@ -235,66 +214,18 @@ class GPTLanguageModel extends tf.layers.Layer {
   constructor(vocabSize){
     super({});
     this.vocabSize = vocabSize;
-    this.nLayer = nLayer;
-    this.nEmbd = nEmbd;
-    this.nHead = nHead;
-    this.blockSize = blockSize;
+    this.blockSize = BLOCK_SIZE;
   }
 
   build(){
-    // build token embedding table
-    this.tokenEmbeddingTable = tf.layers.embedding({
-      inputDim: this.vocabSize,
-      outputDim: this.nEmbd,
-    });
-    this.tokenEmbeddingTable.build([null, this.blockSize]);
-
-    // build position embedding table
-    this.positionEmbeddingTable = tf.layers.embedding({
-      inputDim: this.blockSize,
-      outputDim: this.nEmbd,
-    });
-    this.positionEmbeddingTable.build([null, this.blockSize]);
-
-    // array of transformer blocks
-    this.blockArr = [];
-    for(let i  = 0; i < this.nLayer; i++){
-      const blk = new Block(this.vocabSize);
-      blk.build();
-      this.blockArr.push(blk);
-    }
-
-    // build final layernorm
-    this.ln = tf.layers.layerNormalization();
-
-    // build linear layer
-    this.lmHead = tf.layers.dense({
-      inputDim: this.nEmbd,
-      units: this.vocabSize,
-    });
-
+    // create the complete GPT model
+    this.gptModel = createGPT(this.vocabSize);
     super.build();
   }
 
-  call(inputs){ // FIX (CHECK) DIMENSIONS
-    // get input shape
-    const [B, T] = inputs.shape;
-
-    // get embeddings as a sum of token and position embeddings
-    const tokEmbd = this.tokenEmbeddingTable.apply(inputs); // (B, T, nEmbd)
-    const posEmbd = this.positionEmbeddingTable.apply(
-      tf.range(0, T, 1, "int32")).expandDims(0); // (1, T, nEmbd)
-    const embdSum = tokEmbd.add(posEmbd); // (B, T, nEmbd)
-
-    // apply all transformer blocks sequentially
-    let blockEmbd = embdSum; // (B, T, nEmbd)
-    for(const block of this.blockArr){
-      blockEmbd = block.apply(blockEmbd);
-    }
-    blockEmbd = this.ln.apply(blockEmbd);
-
-    const logits = this.lmHead.apply(blockEmbd); // (B, T, vocabSize)
-    return logits;
+  call(inputs){
+    // delegate to the internal model
+    return this.gptModel.apply(inputs);
   }
   
   loss(inputs, targets){
@@ -337,6 +268,16 @@ class GPTLanguageModel extends tf.layers.Layer {
 
     return context;
   } 
+
+  async save(filepath){
+    // save the model to a file
+    return this.gptModel.save(`file://${filepath}`);
+  }
+
+  async load(filepath){
+    // load the model from a file
+    this.gptModel = await tf.loadLayersModel(`file://${filepath}/model.json`);
+  }
 
   getClassName() { return 'GPTLanguageModel'; }
 }

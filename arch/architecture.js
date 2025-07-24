@@ -6,15 +6,10 @@ import * as hyper from './hyperparameters.js';
 
 // TODO: FIX EVAL_INTERVAL VS EVAL_ITERS
 // hyperparameters
-const BATCH_SIZE = hyper.BATCH_SIZE;
 const BLOCK_SIZE = hyper.BLOCK_SIZE;
-const MAX_ITERS = hyper.MAX_ITERS ;
 const N_EMBD = hyper.N_EMBD;
 const N_LAYER = hyper.N_LAYER;
 const N_HEAD = hyper.N_HEAD;
-const HEAD_SIZE = hyper.HEAD_SIZE;
-const LEARNING_RATE = hyper.LEARNING_RATE;
-const EVAL_INTERVAL = hyper.EVAL_INTERVAL;
 const DROPOUT = hyper.DROPOUT;
 // ------------------- LAYER DEFINITIONS ------------------------
 

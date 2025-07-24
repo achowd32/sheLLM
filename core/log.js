@@ -36,5 +36,6 @@ rl.on('line', async (line) => {
 
 rl.on('close', async () => {
   // print average loss
-  console.log(lossSum / evalIters);
+  const lossAvg = lossSum / evalIters;
+  console.log(lossAvg.toFixed(4));
 });

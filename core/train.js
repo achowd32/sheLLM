@@ -28,23 +28,23 @@ let i = 0;
 rl.on('line', async (line) => {
   // parse input and create tensors
   const batch = JSON.parse(line);
-  const xb = tf.tensor2d(batch.batch_x, undefined, 'int32');
-  const yb = tf.tensor2d(batch.batch_y, undefined, 'int32');
+  const x = tf.tensor2d(batch.batch_x, undefined, 'int32');
+  const y = tf.tensor2d(batch.batch_y, undefined, 'int32');
   
+  // log periodically
+  if (i % evalInterval == 0 || i == maxIters - 1) {
+      model.save(`../logs/${i}`);
+      console.log(i);
+  }
+
   // training step
   optimizer.minimize(() => {
-    const loss = model.loss(xb, yb);
-    // log periodically
-    if (i % evalInterval == 0 || i == maxIters - 1) {
-        model.save(`../logs/${i}`);
-        console.log(i);
-    }
-    return loss;
+    return model.loss(x, y);
   });
   
   // clean up tensors
-  xb.dispose();
-  yb.dispose();
+  x.dispose();
+  y.dispose();
 
   i++;
 });

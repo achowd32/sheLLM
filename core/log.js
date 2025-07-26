@@ -14,28 +14,32 @@ const model = new GPTLanguageModel(vocabSize);
 model.build();
 model.load(fileName);
 
-// create readline interface for stdin
-const rl = createInterface({
-    input: process.stdin,
-    crlfDelay: Infinity
-});
-
-// define lossSum
-let lossSum = 0.0;
-
-rl.on('line', async (line) => {
+async function getLoss(line){
   // parse input and create tensors
   const batch = JSON.parse(line);
   const x = tf.tensor2d(batch.batch_x, undefined, 'int32');
   const y = tf.tensor2d(batch.batch_y, undefined, 'int32');
 
-  // calculate loss and add to lossSum
-  const loss = model.loss(x, y).arraySync();
-  lossSum += loss;
-});
+  // calculate loss and return 
+  return model.loss(x, y).arraySync();
+};
 
-rl.on('close', async () => {
+
+async function main(){
+  const rl = createInterface({input: process.stdin});
+
+  // define lossSum
+  let lossSum = 0.0;
+
+  // main loop, add to lossSum
+  for await (const line of rl) {
+    const loss = await getLoss(line); 
+    lossSum += loss;
+  }
+
   // print average loss
   const lossAvg = lossSum / evalIters;
   console.log(lossAvg.toFixed(4));
-});
+}
+
+main();

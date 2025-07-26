@@ -16,20 +16,7 @@ const model = new GPTLanguageModel(vocabSize);
 const optimizer = tf.train.adam(learningRate);
 model.build();
 
-// create readline interface for stdin
-const rl = createInterface({
-    input: process.stdin,
-    crlfDelay: Infinity
-});
-
-// save weights prior to training
-model.save("../logs/0");
-console.log(0);
-
-// main training loop
-let i = 1;
-
-rl.on('line', async (line) => {
+async function train(line){
   // parse input and create tensors
   const batch = JSON.parse(line);
   const x = tf.tensor2d(batch.batch_x, undefined, 'int32');
@@ -40,15 +27,36 @@ rl.on('line', async (line) => {
     return model.loss(x, y);
   });
   
-  // log periodically
-  if (i % evalInterval == 0 || i == maxIters - 1) {
-      model.save(`../logs/${i}`);
-      console.log(i);
-  }
-
   // clean up tensors
   x.dispose();
   y.dispose();
+};
 
-  i++;
-});
+async function main(){
+  // save weights prior to training
+  model.save("../logs/0");
+  console.log(0);
+
+  // create readline interface for stdin
+  const rl = createInterface({input: process.stdin});
+
+  // main training loop
+  let i = 1;
+  for await (const line of rl) {
+    // train
+    await train(line); 
+
+    // log periodically
+    if (i % evalInterval == 0 || i == maxIters - 1) { // TODO: FIX LOGIC
+        await model.save(`../logs/${i}`);
+        console.log(i);
+    }
+
+    // iterate
+    i++;
+  }
+
+  await model.save(`../${filename}`);
+}
+
+main();

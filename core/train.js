@@ -22,8 +22,12 @@ const rl = createInterface({
     crlfDelay: Infinity
 });
 
+// save weights prior to training
+model.save("../logs/0");
+console.log(0);
+
 // main training loop
-let i = 0;
+let i = 1;
 
 rl.on('line', async (line) => {
   // parse input and create tensors
@@ -31,17 +35,17 @@ rl.on('line', async (line) => {
   const x = tf.tensor2d(batch.batch_x, undefined, 'int32');
   const y = tf.tensor2d(batch.batch_y, undefined, 'int32');
   
+  // training step
+  optimizer.minimize(() => {
+    return model.loss(x, y);
+  });
+  
   // log periodically
   if (i % evalInterval == 0 || i == maxIters - 1) {
       model.save(`../logs/${i}`);
       console.log(i);
   }
 
-  // training step
-  optimizer.minimize(() => {
-    return model.loss(x, y);
-  });
-  
   // clean up tensors
   x.dispose();
   y.dispose();

@@ -4,7 +4,6 @@ import '@tensorflow/tfjs-node';
 import * as tf from '@tensorflow/tfjs';
 import * as hyper from './hyperparameters.js';
 
-// TODO: FIX EVAL_INTERVAL VS EVAL_ITERS
 // hyperparameters
 const BLOCK_SIZE = hyper.BLOCK_SIZE;
 const N_EMBD = hyper.N_EMBD;

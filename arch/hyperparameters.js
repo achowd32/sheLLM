@@ -1,25 +1,19 @@
 const BATCH_SIZE = 12 ;
 const BLOCK_SIZE = 64 ;
-const MAX_ITERS = 50 ;
+const MAX_ITERS = 250 ;
 const N_EMBD = 128 ;
 const N_LAYER = 4 ;
 const N_HEAD = 4 ;
-const HEAD_SIZE = 16 ;
 const LEARNING_RATE = 0.0003 ;
 const EVAL_INTERVAL = 50 ;
+const EVAL_ITERS = 20 ;
 const DROPOUT = 0.0 ;
 
 // DO NOT MODIFY FORMATTING ABOVE THIS LINE
-// TODO: CHECK IF HEAD_SIZE IS USED
 export {
-  BATCH_SIZE,
   BLOCK_SIZE,
-  MAX_ITERS,
   N_EMBD,
   N_LAYER,
   N_HEAD,
-  HEAD_SIZE,
-  LEARNING_RATE,
-  EVAL_INTERVAL,
   DROPOUT
 };

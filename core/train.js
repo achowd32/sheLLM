@@ -21,9 +21,7 @@ async function train(line){
   const y = tf.tensor2d(batch.batch_y, undefined, 'int32');
   
   // training step
-  optimizer.minimize(() => {
-    return model.loss(x, y);
-  });
+  optimizer.minimize(() => { return model.loss(x, y); });
   
   // clean up tensors
   x.dispose();

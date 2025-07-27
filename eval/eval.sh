@@ -16,7 +16,7 @@ iters=0
 while [ $iters -lt $num_evals ]; do
     # generate text sample and save it; will be used for evaluations
     echo -ne "$prompt" | ./encode.sh | ./generate.js $model_file $max_tokens 2>/dev/null | ./decode.sh > sample.txt
-    
+   
     # load the sample text and reference text into variables
     # sample=$(cat sample.txt)
     # reference=$(head -c "$max_tokens" ../data/val.txt)

@@ -12,7 +12,7 @@ const vocabSize = 128;
 // load model
 const model = new GPTLanguageModel(vocabSize);
 model.build();
-model.load(fileName);
+await model.load(fileName);
 
 async function getLoss(line){
   // parse input and create tensors

@@ -1,5 +1,5 @@
 #!/bin/bash
-model_file="../model"
+model_file="../logs/${MAX_ITERS}"
 prompt=""
 max_tokens=500
 num_evals=1
@@ -15,7 +15,7 @@ echo -e "${BLUE}Performing evaluations...${RESET}"
 iters=0
 while [ $iters -lt $num_evals ]; do
     # generate text sample and save it; will be used for evaluations
-    echo -ne "$prompt" | ./encode.sh | ./generate.js $model_file $max_tokens | ./decode.sh #> sample.txt
+    echo -ne "$prompt" | ./encode.sh | ./generate.js $model_file $max_tokens 2>/dev/null | ./decode.sh > sample.txt
     
     # load the sample text and reference text into variables
     # sample=$(cat sample.txt)

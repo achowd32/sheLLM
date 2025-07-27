@@ -1,6 +1,6 @@
 const BATCH_SIZE = 12 ;
 const BLOCK_SIZE = 64 ;
-const MAX_ITERS = 250 ;
+const MAX_ITERS = 260 ;
 const N_EMBD = 128 ;
 const N_LAYER = 4 ;
 const N_HEAD = 4 ;

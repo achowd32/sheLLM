@@ -6,9 +6,7 @@ import { GPTLanguageModel } from '../arch/architecture.js';
 
 // initialize arguments
 const evalInterval = parseInt(process.argv[2]);
-const maxIters = parseInt(process.argv[3]);
-const learningRate = parseFloat(process.argv[4]);
-const filename = process.argv[5];
+const learningRate = parseFloat(process.argv[3]);
 const vocabSize = 128;
 
 // initialize model and optimizer
@@ -33,30 +31,31 @@ async function train(line){
 };
 
 async function main(){
-  // save weights prior to training
-  model.save("../logs/0");
-  console.log(0);
-
   // create readline interface for stdin
   const rl = createInterface({input: process.stdin});
 
   // main training loop
-  let i = 1;
+  let i = 0;
   for await (const line of rl) {
-    // train
-    await train(line); 
-
     // log periodically
-    if (i % evalInterval == 0 || i == maxIters - 1) { // TODO: FIX LOGIC
+    if (i % evalInterval == 0) {
         await model.save(`../logs/${i}`);
         console.log(i);
     }
+
+    // train
+    await train(line); 
 
     // iterate
     i++;
   }
 
-  await model.save(`../${filename}`);
+  // save weights after training
+  await model.save(`../logs/${i}`);
+  console.log(i);
+
+  // optional: save to separate file for inspection
+  // await model.save("../model");
 }
 
 main();

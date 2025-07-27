@@ -194,6 +194,7 @@ function createGPT(vocabSize) {
   }
 
   // final layer normalization
+  // TODO: ADD IDENTITY OPTION
   const normalized = tf.layers.layerNormalization().apply(blockEmbd);
 
   // linear layer to vocabulary size
@@ -243,7 +244,7 @@ class GPTLanguageModel extends tf.layers.Layer {
 
   generate(context, maxTokens){
     for(let i = 0; i < maxTokens; i++){
-      context = tf.tidy(() => {
+      //context = tf.tidy(() => {
         // crop context to the last block size tokens
         const start = Math.max(context.shape[1] - this.blockSize, 0);
         const sliceSize = Math.min(context.shape[1], this.blockSize);
@@ -259,8 +260,8 @@ class GPTLanguageModel extends tf.layers.Layer {
         const next = tf.multinomial(last, 1);
 
         // append to running sequence
-        return tf.concat([context, next], 1);
-      });
+        context = tf.concat([context, next], 1);
+      //});
     }
 
     return context;

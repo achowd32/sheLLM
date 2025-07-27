@@ -18,4 +18,4 @@ cd data; ./data.sh
 cd ../core; ./core.sh
 
 # perform evaluations
-#cd ../eval; ./eval.sh
+cd ../eval; ./eval.sh

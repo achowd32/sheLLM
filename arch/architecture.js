@@ -194,8 +194,8 @@ function createGPT(vocabSize) {
   }
 
   // final layer normalization
-  // TODO: ADD IDENTITY OPTION
-  const normalized = tf.layers.layerNormalization().apply(blockEmbd);
+  //const normalized = createLayerNorm().apply(blockEmbd);
+  const normalized = createIdentity().apply(blockEmbd);
 
   // linear layer to vocabulary size
   const logits = tf.layers.dense({

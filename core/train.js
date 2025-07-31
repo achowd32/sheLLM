@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-node';
 import { createInterface } from 'readline';
 import { GPTLanguageModel } from '../arch/architecture.js';
 

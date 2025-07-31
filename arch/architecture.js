@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-import '@tensorflow/tfjs-node';
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-node';
 import * as hyper from './hyperparameters.js';
 
 // hyperparameters

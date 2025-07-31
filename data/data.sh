@@ -1,6 +1,4 @@
 #!/bin/bash
-filename="model.pth"
-
 # download training data if it doesn't exist
 echo -e "${BLUE}Initializing training data...${RESET}"
 if [ -f "../data/data.txt" ]; then

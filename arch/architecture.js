@@ -1,14 +1,8 @@
 #!/usr/bin/env node
 
 import * as tf from '@tensorflow/tfjs-node';
-import * as hyper from './hyperparameters.js';
+import { BLOCK_SIZE, N_EMBD, N_LAYER, N_HEAD, DROPOUT } from './hyperparameters.js';
 
-// hyperparameters
-const BLOCK_SIZE = hyper.BLOCK_SIZE;
-const N_EMBD = hyper.N_EMBD;
-const N_LAYER = hyper.N_LAYER;
-const N_HEAD = hyper.N_HEAD;
-const DROPOUT = hyper.DROPOUT;
 // ------------------- LAYER DEFINITIONS ------------------------
 
 // layer to perform the scaling operation in Head

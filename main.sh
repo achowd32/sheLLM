@@ -14,4 +14,4 @@ cd data; ./data.sh
 
 cd ../core; ./core.sh
 
-# cd ../eval; ./eval.sh
+cd ../eval; ./eval.sh

@@ -1,5 +1,5 @@
 #!/bin/bash
-model_file="model.pth"
+model_file="../logs/${MAX_ITERS}.pth"
 prompt=""
 max_tokens=500
 num_evals=1

@@ -10,9 +10,7 @@ filename = sys.argv[1]
 max_tok = int(sys.argv[2])
 
 model = architecture.GPTLanguageModel(vocab_size)
-checkpoint = torch.load(f"../{filename}")
-
-model.load_state_dict(checkpoint['model_sd'])
+model.load_state_dict(torch.load(filename))
 model.eval()
 
 prompt = sys.stdin.read()

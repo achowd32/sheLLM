@@ -14,15 +14,18 @@ const model = new GPTLanguageModel(vocabSize); // can replace with BigramLanguag
 await model.load(fileName);
 
 async function getLoss(line){
+  // parse input
+  const batch = JSON.parse(line);
+
   const loss = tf.tidy(() => {
-    // parse input and create tensors
-    const batch = JSON.parse(line);
-    const x = tf.tensor2d(batch.batch_x, undefined, 'int32');
-    const y = tf.tensor2d(batch.batch_y, undefined, 'int32');
+    // create tensors
+    const x = tf.tensor2d(batch.xb, undefined, 'int32');
+    const y = tf.tensor2d(batch.yb, undefined, 'int32');
 
     // calculate loss and return 
     return model.loss(x, y).arraySync();
   });
+
   return loss;
 };
 

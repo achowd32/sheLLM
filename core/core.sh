@@ -1,4 +1,7 @@
 #!/bin/bash
+cd "$(dirname $0)"
+
+# number of samples to train on
 num_samples=$((MAX_ITERS * BATCH_SIZE))
 
 # initiate core pipeline

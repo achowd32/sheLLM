@@ -198,7 +198,8 @@ function createGPT(vocabSize) {
   return tf.model({inputs: input, outputs: logits});
 }
 
-// define GPT language model
+// ------------------- NANOGPT CLASS DEFINITION ------------------------
+
 class GPTLanguageModel {
   constructor(vocabSize){
     this.vocabSize = vocabSize;

@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # set variables
-num_samples=$1 # number of samples
-sample_size=$((BLOCK_SIZE + 1)) # number of tokens per sample
-file_name=${2:-"../data/train.txt"} # training data filename, defaults to data/train.txt
+num_samples=$1
+sample_size=$((BLOCK_SIZE + 1))
+file_name=${2:-"../data/train.txt"}
 
 # get number of iterations (to avoid partial output at the end)
 char_count=$(wc -c < "$file_name" | tr -d ' ') # training data file character count

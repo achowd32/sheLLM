@@ -16,11 +16,13 @@ const model = new GPTLanguageModel(vocabSize); // can replace with BigramLanguag
 const optimizer = tf.train.adam(learningRate);
 
 async function train(line){
+  // parse input
+  const batch = JSON.parse(line);
+
   tf.tidy(() => {
-    // parse input and create tensors
-    const batch = JSON.parse(line);
-    const x = tf.tensor2d(batch.batch_x, undefined, 'int32');
-    const y = tf.tensor2d(batch.batch_y, undefined, 'int32');
+    // create tensors
+    const x = tf.tensor2d(batch.xb, undefined, 'int32');
+    const y = tf.tensor2d(batch.yb, undefined, 'int32');
     
     // training step
     optimizer.minimize(() => { return model.loss(x, y); });
@@ -29,7 +31,7 @@ async function train(line){
 
 async function main(){
   // create readline interface for stdin
-  const rl = createInterface({input: process.stdin});
+  const rl = createInterface({ input: process.stdin });
 
   // main training loop
   let i = 0;
@@ -40,10 +42,8 @@ async function main(){
         console.log(i);
     }
 
-    // train
+    // train and iterate
     await train(line); 
-
-    // iterate
     i++;
   }
 
@@ -52,9 +52,7 @@ async function main(){
   console.log(i);
 
   // optional: save to separate file for inspection
-  if (saveFilename) { 
-    await model.save(saveFilename);
-  }
+  if (saveFilename) await model.save(saveFilename);
 }
 
 main();

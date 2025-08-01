@@ -17,17 +17,15 @@ const optimizer = tf.train.adam(learningRate);
 model.build();
 
 async function train(line){
-  // parse input and create tensors
-  const batch = JSON.parse(line);
-  const x = tf.tensor2d(batch.batch_x, undefined, 'int32');
-  const y = tf.tensor2d(batch.batch_y, undefined, 'int32');
-  
-  // training step
-  optimizer.minimize(() => { return model.loss(x, y); });
-  
-  // clean up tensors
-  x.dispose();
-  y.dispose();
+  tf.tidy(() => {
+    // parse input and create tensors
+    const batch = JSON.parse(line);
+    const x = tf.tensor2d(batch.batch_x, undefined, 'int32');
+    const y = tf.tensor2d(batch.batch_y, undefined, 'int32');
+    
+    // training step
+    optimizer.minimize(() => { return model.loss(x, y); });
+  });
 };
 
 async function main(){

@@ -15,19 +15,9 @@ const model = new GPTLanguageModel(vocabSize); // can replace with BigramLanguag
 model.build();
 await model.load(filePath);
 
-// handle stdin
-async function main() {
-    const rl = createInterface({input: process.stdin});
-    let promptVal = '';
-    rl.on('line', (line) => {
-        promptVal += line;
-    });
-    rl.on('close', () => {
-        runGeneration(promptVal);
-    });
-}
-
+// generate function
 async function runGeneration(promptVal) {
+  tf.tidy(() => {
     let context;
 
     if (promptVal.trim()) {
@@ -39,9 +29,20 @@ async function runGeneration(promptVal) {
 
     const generated = model.generate(context, maxTokens).arraySync()[0];
     console.log(generated.join(' '));
+  });
+}
 
-    context.dispose();
-    //generated.dispose();
+// main function to handle stdin
+async function main() {
+  // create readline interface for stdin
+  const rl = createInterface({input: process.stdin});
+  
+  // read in prompt
+  let promptVal = '';
+  rl.on('line', (line) => { promptVal += line; });
+
+  // run generation function once prompt has been read
+  rl.on('close', () => { runGeneration(promptVal); });
 }
 
 main();

@@ -2,7 +2,8 @@
 
 import * as tf from '@tensorflow/tfjs-node';
 import { createInterface } from 'readline';
-import { GPTLanguageModel } from '../arch/architecture.js';
+import { GPTLanguageModel } from '../arch/nanogpt.js';
+import { BigramLanguageModel } from '../arch/bigram.js';
 
 // initialize arguments
 const filePath = process.argv[2];
@@ -10,7 +11,7 @@ const maxTokens = parseInt(process.argv[3]);
 const vocabSize = 128;
 
 // initialize model
-const model = new GPTLanguageModel(vocabSize);
+const model = new GPTLanguageModel(vocabSize); // can replace with BigramLanguageModel
 model.build();
 await model.load(filePath);
 

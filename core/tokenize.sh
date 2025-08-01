@@ -15,5 +15,5 @@ exec 3< "$file_name"
 
 # commence reading and tokenizing loop
 for i in $(seq $num_samples); do
-    dd bs=$sample_size count=1 2>/dev/null <&3 | od -An -t u1 -v | xargs
+    dd bs=$sample_size count=1 2>/dev/null <&3 | od -An -t u1 -v | xargs 2>/dev/null
 done

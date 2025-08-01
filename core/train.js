@@ -2,7 +2,8 @@
 
 import * as tf from '@tensorflow/tfjs-node';
 import { createInterface } from 'readline';
-import { GPTLanguageModel } from '../arch/architecture.js';
+import { GPTLanguageModel } from '../arch/nanogpt.js';
+import { BigramLanguageModel } from '../arch/bigram.js';
 
 // initialize arguments
 const evalInterval = parseInt(process.argv[2]);
@@ -11,7 +12,7 @@ const saveFilename = process.argv[4];
 const vocabSize = 128;
 
 // initialize model and optimizer
-const model = new GPTLanguageModel(vocabSize);
+const model = new GPTLanguageModel(vocabSize); // can replace with BigramLanguageModel
 const optimizer = tf.train.adam(learningRate);
 model.build();
 

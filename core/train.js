@@ -14,7 +14,6 @@ const vocabSize = 128;
 // initialize model and optimizer
 const model = new GPTLanguageModel(vocabSize); // can replace with BigramLanguageModel
 const optimizer = tf.train.adam(learningRate);
-model.build();
 
 async function train(line){
   tf.tidy(() => {

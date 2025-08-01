@@ -11,7 +11,6 @@ const vocabSize = 128;
 
 // load model
 const model = new GPTLanguageModel(vocabSize); // can replace with BigramLanguageModel
-model.build();
 await model.load(fileName);
 
 async function getLoss(line){

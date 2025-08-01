@@ -12,7 +12,6 @@ const vocabSize = 128;
 
 // initialize model
 const model = new GPTLanguageModel(vocabSize); // can replace with BigramLanguageModel
-model.build();
 await model.load(filePath);
 
 // generate function

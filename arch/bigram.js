@@ -24,10 +24,6 @@ class BigramLanguageModel {
     return this.model.apply(inputs);
   }
   
-  build(){
-    return;
-  }
-
   loss(inputs, targets) {
     const loss = tf.tidy(() => {
       // get logits
@@ -47,27 +43,26 @@ class BigramLanguageModel {
   }
 
   generate(context, maxTokens) {
-    const output = tf.tidy(() => {
-      for (let i = 0; i < maxTokens; i++) {
+    for (let i = 0; i < maxTokens; i++) {
+      context = tf.tidy(() => {
         // get predictions
         const logits = this.apply(context);
 
         // get last time step
         const last = tf.gather(logits, logits.shape[1] - 1, 1);
 
-        // scale logits
+        // scale logits, improves multinomial sampling
+        // can experiment with scale value
         const scaledLast = last.mul(tf.scalar(3));
 
         // sample from distribution
         const next = tf.multinomial(scaledLast, 1);
 
         // append to running sequence
-        const concatLayer = tf.layers.concatenate();
-        context = concatLayer.apply([context, next]);
-      }
-      return context;
-    });
-    return output;
+        return tf.concat([context, next], 1);
+      });
+    }
+    return context;
   }
 
   save(filepath){

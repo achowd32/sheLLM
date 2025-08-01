@@ -199,20 +199,14 @@ function createGPT(vocabSize) {
 }
 
 // define GPT language model
-class GPTLanguageModel extends tf.layers.Layer {
+class GPTLanguageModel {
   constructor(vocabSize){
-    super({});
     this.vocabSize = vocabSize;
     this.blockSize = BLOCK_SIZE;
-  }
-
-  build(){
-    // create the complete GPT model
     this.gptModel = createGPT(this.vocabSize);
-    super.build();
   }
 
-  call(inputs){
+  apply(inputs){
     // delegate to the internal model
     return this.gptModel.apply(inputs);
   }
@@ -269,8 +263,6 @@ class GPTLanguageModel extends tf.layers.Layer {
     // load the model from a file
     this.gptModel = await tf.loadLayersModel(`file://${filepath}/model.json`);
   }
-
-  getClassName() { return 'GPTLanguageModel'; }
 }
 
 export { GPTLanguageModel };

@@ -7,7 +7,6 @@ import { BigramLanguageModel } from '../arch/bigram.js';
 
 // load arguments
 const fileName = process.argv[2];
-const evalIters = parseInt(process.argv[3]);
 const vocabSize = 128;
 
 // load model
@@ -29,17 +28,19 @@ async function getLoss(line){
 async function main(){
   const rl = createInterface({input: process.stdin});
 
-  // define lossSum
+  // define variables
   let lossSum = 0.0;
+  let numIters = 0;
 
   // main loop, add to lossSum
   for await (const line of rl) {
     const loss = await getLoss(line); 
     lossSum += loss;
+    numIters += 1;
   }
 
   // print average loss
-  const lossAvg = lossSum / evalIters;
+  const lossAvg = lossSum / numIters;
   console.log(lossAvg.toFixed(4));
 }
 

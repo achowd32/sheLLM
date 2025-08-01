@@ -51,6 +51,36 @@ class CausalMask extends tf.layers.Layer {
 }
 tf.serialization.registerClass(CausalMask);
 
+class PositionalEmbedding extends tf.layers.Layer {
+  constructor(config) {
+    super(config);
+    this.blockSize = config.blockSize;
+    this.nEmbd = config.nEmbd;
+    this.positionEmbeddingTable = tf.layers.embedding({
+      inputDim: this.blockSize,
+      outputDim: this.nEmbd,
+    });
+  }
+
+  call(input){
+    // get input shape
+    const [B, T] = input[0].shape;
+    
+    // apply positional embeddings
+    const posEmbd = this.positionEmbeddingTable.apply(
+      tf.range(0, T, 1, "int32")).expandDims(0); // (1, T, nEmbd)
+    return input[0].add(posEmbd); // (B, T, nEmbd)
+  }
+
+  getConfig() {
+    return Object.assign(super.getConfig(),
+      {blockSize: this.blockSize, nEmbd: this.nEmbd});
+  }
+
+  static get className() { return 'PositionalEmbedding'; }
+}
+tf.serialization.registerClass(PositionalEmbedding);
+
 // ------------------- MODEL DEFINITIONS ------------------------
 
 // define function that returns Identity layer as a tf.model
@@ -179,8 +209,12 @@ function createGPT(vocabSize) {
     outputDim: N_EMBD,
   }).apply(input); // (B, T, N_EMBD)
 
+  // positional embedding table
+  const posEmbdLayer = new PositionalEmbedding({blockSize: BLOCK_SIZE, nEmbd: N_EMBD});
+  const posEmbd = posEmbdLayer.apply(tokEmbd);
+
   // apply all transformer blocks sequentially
-  let blockEmbd = tokEmbd;
+  let blockEmbd = posEmbd;
   for(let i = 0; i < N_LAYER; i++){
     const block = createBlock(N_HEAD);
     blockEmbd = block.apply(blockEmbd);

@@ -51,8 +51,8 @@ async function main(){
   await model.save(`../logs/${i}`);
   console.log(i);
 
-  // optional: save to separate file for inspection
-  if (saveFilename) await model.save(saveFilename);
+  // save to separate file for evaluations
+  await model.save(saveFilename);
 }
 
 main();

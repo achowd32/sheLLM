@@ -32,7 +32,7 @@ class CausalMask extends tf.layers.Layer {
     this.tril = tf.linalg.bandPart(tf.ones([this.blockSize, this.blockSize], 'bool'), -1, 0);  // shape [Tmax, Tmax]
     super.build(inputShape);
   }
-  call(inputs/*, kwargs*/) {
+  call(inputs) {
     const scores = Array.isArray(inputs) ? inputs[0] : inputs; // [B, T, T]
     const shape = scores.shape; // e.g. [1, 10, 10]
     const T = shape[1]; // 10 at runtime
@@ -44,9 +44,11 @@ class CausalMask extends tf.layers.Layer {
     const negInf = tf.fill(shape, Number.NEGATIVE_INFINITY); // [1, T, T]
     return tf.where(mask, negInf, scores); // [1, T, T]
   }
+
   getConfig() {
     return Object.assign(super.getConfig(), {blockSize: this.blockSize});
   }
+
   static get className() { return 'CausalMask'; }
 }
 tf.serialization.registerClass(CausalMask);
@@ -182,10 +184,10 @@ function createBlock(nHead) {
   const ffwd = createFeedForward();
 
   // create layerNorm layers, or use the Identity layer to avoid layerNorm
-  // const ln1 = createLayerNorm();
-  // const ln2 = createLayerNorm();
-  const ln1 = createIdentity();
-  const ln2 = createIdentity();
+  const ln1 = createLayerNorm();
+  const ln2 = createLayerNorm();
+  //const ln1 = createIdentity();
+  //const ln2 = createIdentity();
 
   // perform computations with residual
   const ln1Out = ln1.apply(input);
@@ -200,12 +202,12 @@ function createBlock(nHead) {
 }
 
 // function that returns a complete GPT Language Model as a tf.model (without position embeddings)
-function createGPT(vocabSize) {
+function createGPT(vocabSizeVal) {
   const input = tf.input({shape: [BLOCK_SIZE], dtype: 'int32'});
 
   // token embedding table
   const tokEmbd = tf.layers.embedding({
-    inputDim: vocabSize,
+    inputDim: vocabSizeVal,
     outputDim: N_EMBD,
   }).apply(input); // (B, T, N_EMBD)
 
@@ -221,24 +223,22 @@ function createGPT(vocabSize) {
   }
 
   // final layer normalization
-  //const normalized = createLayerNorm().apply(blockEmbd);
-  const normalized = createIdentity().apply(blockEmbd);
+  const normalized = tf.layers.layerNormalization().apply(blockEmbd);
 
   // linear layer to vocabulary size
   const logits = tf.layers.dense({
-    units: vocabSize,
+    units: vocabSizeVal,
   }).apply(normalized); // (B, T, vocabSize)
 
   return tf.model({inputs: input, outputs: logits});
 }
 
-// ------------------- NANOGPT CLASS DEFINITION ------------------------
-
+// define GPT language model
 class GPTLanguageModel {
-  constructor(vocabSize){
-    this.vocabSize = vocabSize;
+  constructor(vocabSizeVal){
+    this.vocabSize = vocabSizeVal;
     this.blockSize = BLOCK_SIZE;
-    this.gptModel = createGPT(this.vocabSize);
+    this.gptModel = createGPT(vocabSizeVal);
   }
 
   apply(inputs){
@@ -298,6 +298,7 @@ class GPTLanguageModel {
     // load the model from a file
     this.gptModel = await tf.loadLayersModel(`file://${filepath}/model.json`);
   }
-}
 
+  getClassName() { return 'GPTLanguageModel'; }
+}
 export { GPTLanguageModel };

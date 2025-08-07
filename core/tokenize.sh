@@ -7,7 +7,7 @@ file_name=${2:-"../data/train.txt"}
 
 # get number of iterations (to avoid partial output at the end)
 char_count=$(wc -c < "$file_name" | tr -d ' ') # training data file character count
-poss_iters=$((char_count / BLOCK_SIZE)) # number of possible iterations in training data
+poss_iters=$((char_count / sample_size)) # number of possible iterations in training data
 [[ $num_samples -gt $poss_iters ]] && num_samples=$poss_iters
 
 # create file descriptor

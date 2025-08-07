@@ -8,5 +8,5 @@ num_samples=$((MAX_ITERS * BATCH_SIZE))
 echo -e "${BLUE}Initiating core tokenization and training loop...${RESET}"
 ./tokenize.sh $num_samples | 
 ./chunk.js $BATCH_SIZE $BLOCK_SIZE |
-./train.js $EVAL_INTERVAL $LEARNING_RATE 2>/dev/null |
+./train.js $EVAL_INTERVAL $LEARNING_RATE "../model" |
 ./log.sh 

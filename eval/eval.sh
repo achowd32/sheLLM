@@ -1,27 +1,15 @@
 #!/bin/bash
 cd "$(dirname $0)"
-
-model_file="../logs/${MAX_ITERS}"
-prompt=""
-max_tokens=500
 num_evals=1
-
 lang_sum=0; prec_sum=0; rec_sum=0; f1_sum=0; pos_sum=0;
-
-encode() {
-    echo -ne "$1" | od -An -t u1 -v | xargs
-}
-
-decode() {
-    sed 's/\(. \)/\1\n/g' | awk '{printf("%c", $1)}' 
-}
+model_file="../model"; prompt=""; max_tokens=500
 
 echo -e "${BLUE}Performing evaluations...${RESET}"
 
 iters=0
 while [ $iters -lt $num_evals ]; do
-    # generate text sample and save it; will be used for evaluations
-    encode "$prompt" | ./generate.js $model_file $max_tokens 2>/dev/null | decode > sample.txt
+    # generate sample
+    ./generate.sh "$model_file" "$prompt" "$max_tokens" > "sample.txt"
    
     # load the sample text and reference text into variables
     # sample=$(cat sample.txt)

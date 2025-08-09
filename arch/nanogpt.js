@@ -29,20 +29,20 @@ class CausalMask extends tf.layers.Layer {
     this.blockSize = config.blockSize;
   }
   build(inputShape) {
-    this.tril = tf.linalg.bandPart(tf.ones([this.blockSize, this.blockSize], 'bool'), -1, 0);  // shape [Tmax, Tmax]
+    this.tril = tf.linalg.bandPart(tf.ones([this.blockSize, this.blockSize], 'bool'), -1, 0);  // shape (Tmax, Tmax)
     super.build(inputShape);
   }
   call(inputs) {
-    const scores = Array.isArray(inputs) ? inputs[0] : inputs; // [B, T, T]
-    const shape = scores.shape; // e.g. [1, 10, 10]
-    const T = shape[1]; // 10 at runtime
+    const scores = Array.isArray(inputs) ? inputs[0] : inputs; // (B, T, T)
+    const shape = scores.shape; // e.g. (1, 10, 10)
+    const T = shape[1];
 
-    // slice out the [T, T] submatrix
-    const mask2d = this.tril.slice([0, 0], [T, T]); // [T, T]
-    const mask = mask2d.logicalNot().expandDims(0); // [1, T, T]
+    // slice out the (T, T) submatrix
+    const mask2d = this.tril.slice([0, 0], [T, T]); // (T, T)
+    const mask = mask2d.logicalNot().expandDims(0); // (1, T, T)
 
-    const negInf = tf.fill(shape, Number.NEGATIVE_INFINITY); // [1, T, T]
-    return tf.where(mask, negInf, scores); // [1, T, T]
+    const negInf = tf.fill(shape, Number.NEGATIVE_INFINITY); // (1, T, T)
+    return tf.where(mask, negInf, scores); // (1, T, T)
   }
 
   getConfig() {
@@ -58,27 +58,38 @@ class PositionalEmbedding extends tf.layers.Layer {
     super(config);
     this.blockSize = config.blockSize;
     this.nEmbd = config.nEmbd;
-    this.positionEmbeddingTable = tf.layers.embedding({
-      inputDim: this.blockSize,
-      outputDim: this.nEmbd,
-    });
+    this.embInit = tf.initializers.randomNormal({ mean: 0, stddev: 0.02 });
   }
 
-  call(input){
-    // get input shape
-    const [B, T] = input[0].shape;
-    
-    // apply positional embeddings
-    const posEmbd = this.positionEmbeddingTable.apply(
-      tf.range(0, T, 1, "int32")).expandDims(0); // (1, T, nEmbd)
-    return input[0].add(posEmbd); // (B, T, nEmbd)
+  build(inputShape) {
+    // create weights with addWeight so TFJS can save and load properly
+    this.posTable = this.addWeight(
+      'pos_table',
+      [this.blockSize, this.nEmbd],
+      'float32',
+      this.embInit,
+      true,
+    );
+    super.build(inputShape);
+  }
+
+  call(inputs) {
+    // prepare inputs
+    const x = Array.isArray(inputs) ? inputs[0] : inputs; // (B, T, C)
+    const T = x.shape[1];
+
+    // slice from table, add, and return
+    const table = this.posTable.read(); // (BLOCK_SIZE, C)
+    const posEmbd = table.slice([0, 0], [T, -1]).expandDims(0); // (1, T, C)
+    return x.add(posEmbd);
   }
 
   getConfig() {
-    return Object.assign(super.getConfig(),
-      {blockSize: this.blockSize, nEmbd: this.nEmbd});
+    return Object.assign(super.getConfig(), {
+      blockSize: this.blockSize,
+      nEmbd: this.nEmbd,
+    });
   }
-
   static get className() { return 'PositionalEmbedding'; }
 }
 tf.serialization.registerClass(PositionalEmbedding);

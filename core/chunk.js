@@ -15,21 +15,6 @@ let batchX = [];
 let batchY = [];
 let i = 0;
 
-// process each line as one sample
-//rl.on('line', (line) => {
-    //// convert to integer array and slice
-    //const cur = line.split(' ').map(n => parseInt(n));
-    //batchX.push(cur.slice(0, blockSize));
-    //batchY.push(cur.slice(1, blockSize + 1));
-    //i++;
-   // 
-    //// if we have collected 'batch_size' many samples, print to stdout
-    //if (i % batchSize === 0) {
-        //console.log(JSON.stringify({ xb: batchX, yb: batchY }));
-        //batchX = []; batchY = [];
-    //}
-//});
-
 async function main(){
   // create readline interface for stdin
   const rl = createInterface({ input: process.stdin });

@@ -2,8 +2,8 @@
 
 # set variables
 num_samples=$1
+file_name="../data/$2"
 sample_size=$((BLOCK_SIZE + 1))
-file_name=${2:-"../data/train.txt"}
 
 # get number of iterations (to avoid partial output at the end)
 char_count=$(wc -c < "$file_name" | tr -d ' ') # training data file character count

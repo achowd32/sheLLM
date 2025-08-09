@@ -8,7 +8,7 @@ import { BigramLanguageModel } from '../arch/bigram.js';
 // initialize arguments
 const evalInterval = parseInt(process.argv[2]);
 const learningRate = parseFloat(process.argv[3]);
-const saveFilename = process.argv[4];
+const modelDir = process.argv[4];
 const vocabSize = 128;
 
 // initialize model and optimizer
@@ -52,7 +52,7 @@ async function main(){
   console.log(i);
 
   // save to separate file for evaluations
-  await model.save(saveFilename);
+  await model.save(`../${modelDir}`);
 }
 
 main();

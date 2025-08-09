@@ -1,19 +1,27 @@
 #!/bin/bash
 cd "$(dirname $0)"
+
+# initialize arguments
+val_file="$1"
+model_dir="$2"
+sample_file="$3"
+
+# initialize variables
 num_evals=1
-lang_sum=0; prec_sum=0; rec_sum=0; f1_sum=0; pos_sum=0;
-model_file="../model"; prompt=""; max_tokens=500
+eval_avg=0
+prompt=""
+max_tokens=500
 
 echo -e "${BLUE}Performing evaluations...${RESET}"
 
 iters=0
 while [ $iters -lt $num_evals ]; do
     # generate sample
-    ./generate.sh "$model_file" "$prompt" "$max_tokens" > "sample.txt"
+    ./generate.sh "../$model_dir" "$prompt" "$max_tokens" > "$sample_file"
    
     # load the sample text and reference text into variables
-    # sample=$(cat sample.txt)
-    # reference=$(head -c "$max_tokens" ../data/val.txt)
+    sample=$(cat sample.txt)
+    reference=$(head -c "$max_tokens" "../data/$val_file")
 
     # perform a simple language evaluation: number of language errors in sample
     # lang_score=$(python3 lang_eval.py "$sample" 2>&1 | grep "Numerrors: " | awk '{print $2}')

@@ -16,11 +16,19 @@ set +o allexport
 
 # ------------------- START PIPELINE ------------------- 
 
+# initialize variables
+data_file="data.txt"
+train_file="train.txt"
+val_file="val.txt"
+model_dir="model"
+sample_file="sample.txt"
+num_evals=1
+
 # process data
-data/data.sh
+data/data.sh "$data_file" "$train_file" "$val_file"
 
 # run core tokenization and training pipeline
-core/core.sh
+core/core.sh "$train_file" "$val_file" "$model_dir"
 
 # perform evaluations
-eval/eval.sh
+eval/eval.sh "$val_file" "$model_dir" "$sample_file"

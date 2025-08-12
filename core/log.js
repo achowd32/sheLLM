@@ -23,7 +23,7 @@ async function getLoss(line){
     const y = tf.tensor2d(batch.yb, undefined, 'int32');
 
     // calculate loss and return 
-    return model.loss(x, y).arraySync();
+    return model.loss(x, y, false).arraySync();
   });
 
   return loss;

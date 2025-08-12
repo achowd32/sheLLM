@@ -242,15 +242,15 @@ class GPTLanguageModel {
     this.gptModel = createGPT(vocabSizeVal);
   }
 
-  apply(inputs){
+  apply(inputs, train = true){
     // delegate to the internal model
-    return this.gptModel.apply(inputs);
+    return this.gptModel.apply(inputs, {training: train});
   }
   
-  loss(inputs, targets){
+  loss(inputs, targets, train = true){
     const returnLoss = tf.tidy(() => { 
       // get logits
-      const logitsT = this.apply(inputs);
+      const logitsT = this.apply(inputs, train);
 
       // flatten logits and targets
       const flatLogits = logitsT.reshape([-1, this.vocabSize]);
@@ -274,7 +274,7 @@ class GPTLanguageModel {
         const croppedContext = context.slice([0, start], [-1, sliceSize]); 
 
         // get predictions
-        const logits = this.apply(croppedContext);
+        const logits = this.apply(croppedContext, false);
 
         // get last time step
         const last = tf.gather(logits, logits.shape[1] - 1, 1);

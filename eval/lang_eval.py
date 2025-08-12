@@ -5,7 +5,7 @@ def main(text):
     tool = language_tool_python.LanguageTool('en-US')
     errors = tool.check(text)
     numerrors = len(errors)
-    print(f"Numerrors: {numerrors}")
+    print(numerrors)
 
 if __name__=="__main__":
     main(sys.argv[1])

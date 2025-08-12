@@ -1,20 +1,21 @@
 #!/bin/bash
-cd "$(dirname $0)"
+cd "$(dirname "$0")"
 
 # initialize arguments
 val_file="$1"
 model_dir="$2"
 sample_file="$3"
+which_eval="$4"
 
 # initialize variables
 num_evals=1
-eval_avg=0
 prompt=""
 max_tokens=500
 
 echo -e "${BLUE}Performing evaluations...${RESET}"
 
 iters=0
+eval_sum=0
 while [ $iters -lt $num_evals ]; do
     # generate sample
     ./generate.sh "../$model_dir" "$prompt" "$max_tokens" > "$sample_file"
@@ -23,32 +24,22 @@ while [ $iters -lt $num_evals ]; do
     sample=$(cat sample.txt)
     reference=$(head -c "$max_tokens" "../data/$val_file")
 
-    # perform a simple language evaluation: number of language errors in sample
-    # lang_score=$(python3 lang_eval.py "$sample" 2>&1 | grep "Numerrors: " | awk '{print $2}')
-    # ((lang_sum += lang_score))
+    # run evaluation based on which_eval argument
+    if [[ "$which_eval" == "lang" ]]; then
+        eval_score=$(python3 lang_eval.py "$sample")
+    elif [[ "$which_eval" == "bert" ]]; then
+        eval_score=$(python3 bert_eval.py "$sample" "$reference")
+    elif [[ "$which_eval" == "posp" ]]; then
+        eval_score=$(python3 pos_eval.py "$sample" "$reference")
+    else
+        continue
+    fi
 
-    # perform an evaluation of the semantic similarity between sample and validation data
-    # bertscores=$(python3 bert_eval.py "$sample" "$reference" 2>&1 | grep "BERTScores:" | awk '{print $2, $3, $4}')
-    # read precision recall f1 <<< "$bertscores"
-    # prec_sum=$(echo "$prec_sum + $precision" | bc -l)
-    # rec_sum=$(echo "$rec_sum + $recall" | bc -l)
-    # f1_sum=$(echo "$f1_sum + $f1" | bc -l)
-
-    # perform an evaluation of the syntactic similarity between sample and validation data
-    # pos_score=$(python3 pos_eval.py "$sample" "$reference" 2>&1 | grep "Syntactic similarity" | awk '{print $3}')
-    # pos_sum=$(echo "$pos_sum + $pos_score" | bc -l)
-
-    # iterate
-    ((iters+=1))
+    eval_sum=$(echo "$eval_sum + $eval_score" | bc -l)
+    ((iters++))
 done 
 
-# lang_avg=$(echo "scale=5; $lang_sum / $num_evals" | bc)
-# prec_avg=$(echo "scale=5; $prec_sum / $num_evals" | bc)
-# rec_avg=$(echo "scale=5; $rec_sum / $num_evals" | bc)
-# f1_avg=$(echo "scale=5; $f1_sum / $num_evals" | bc)
-# pos_avg=$(echo "scale=5; $pos_sum / $num_evals" | bc)
-# 
+eval_avg=$(echo "scale=5; $eval_sum / $num_evals" | bc)
+
 # echo -e "${BLUE}Printing evaluation results, averaged over ${num_evals} iterations...${RESET}"
-# echo "Language evaluation: ${lang_avg} language errors detected on average" | tee results.txt
-# echo -e "Semantic similarity evaluation (BERT):\nPrecision—${prec_avg}\nRecall Score—${rec_avg}\nF1 Score—${f1_avg}" | tee -a results.txt
-# echo "Syntactic similarity evaluation (Part-Of-Speech): ${pos_avg}" | tee -a results.txt
+echo "Score: ${eval_avg}"

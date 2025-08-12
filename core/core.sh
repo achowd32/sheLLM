@@ -1,5 +1,5 @@
 #!/bin/bash
-cd "$(dirname $0)"
+cd "$(dirname "$0")"
 
 # handle arguments
 train_file="$1"

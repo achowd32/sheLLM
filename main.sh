@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd "$(dirname $0)"
+cd "$(dirname "$0")"
 mkdir logs/
 
 # create environment variables, accessible in all subshells
@@ -31,4 +31,4 @@ data/data.sh "$data_file" "$train_file" "$val_file"
 core/core.sh "$train_file" "$val_file" "$model_dir"
 
 # perform evaluations
-eval/eval.sh "$val_file" "$model_dir" "$sample_file"
+eval/eval.sh "$val_file" "$model_dir" "$sample_file" "lang"

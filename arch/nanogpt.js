@@ -96,14 +96,6 @@ tf.serialization.registerClass(PositionalEmbedding);
 
 // ------------------- MODEL DEFINITIONS ------------------------
 
-// define function that returns Identity layer as a tf.model
-// can be used to replace the time intensive layerNorm operation
-function createIdentity() {
-  const input = tf.input({shape: [null, N_EMBD]});
-  // identity function - just return the input as output
-  return tf.model({inputs: input, outputs: input});
-}
-
 // define function that returns a LayerNorm layer as a tf.model
 function createLayerNorm() {
   const input = tf.input({shape: [null, N_EMBD]});
@@ -194,11 +186,9 @@ function createBlock(nHead) {
   // create feed forward layer
   const ffwd = createFeedForward();
 
-  // create layerNorm layers, or use the Identity layer to avoid layerNorm
+  // create layerNorm layers
   const ln1 = createLayerNorm();
   const ln2 = createLayerNorm();
-  //const ln1 = createIdentity();
-  //const ln2 = createIdentity();
 
   // perform computations with residual
   const ln1Out = ln1.apply(input);

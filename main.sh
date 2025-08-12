@@ -22,7 +22,7 @@ train_file="train.txt"
 val_file="val.txt"
 model_dir="model"
 sample_file="sample.txt"
-num_evals=1
+eval_type="lang"
 
 # process data
 data/data.sh "$data_file" "$train_file" "$val_file"
@@ -31,4 +31,4 @@ data/data.sh "$data_file" "$train_file" "$val_file"
 core/core.sh "$train_file" "$val_file" "$model_dir"
 
 # perform evaluations
-eval/eval.sh "$val_file" "$model_dir" "$sample_file" "lang"
+eval/eval.sh "$val_file" "$model_dir" "$sample_file" "$eval_type"

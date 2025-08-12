@@ -21,7 +21,7 @@ while [ $iters -lt $num_evals ]; do
     ./generate.sh "../$model_dir" "$prompt" "$max_tokens" > "$sample_file"
    
     # load the sample text and reference text into variables
-    sample=$(cat sample.txt)
+    sample=$(cat "$sample_file")
     reference=$(head -c "$max_tokens" "../data/$val_file")
 
     # run evaluation based on which_eval argument

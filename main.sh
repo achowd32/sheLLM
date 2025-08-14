@@ -22,7 +22,7 @@ train_file="train.txt"
 val_file="val.txt"
 model_dir="model"
 sample_file="sample.txt"
-eval_type="lang"
+eval_type="lang" # can be "lang", "bert", or "posp"
 
 # process data
 data/data.sh "$data_file" "$train_file" "$val_file"

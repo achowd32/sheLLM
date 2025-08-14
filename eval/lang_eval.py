@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import language_tool_python
 import sys
 

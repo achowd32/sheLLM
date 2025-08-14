@@ -1,9 +1,9 @@
 const BATCH_SIZE = 12 ;
 const BLOCK_SIZE = 64 ;
-const MAX_ITERS = 200 ;
+const MAX_ITERS = 100 ;
 const LEARNING_RATE = 0.0003 ;
-const EVAL_INTERVAL = 100 ;
-const EVAL_ITERS = 20 ;
+const LOG_INTERVAL = 100 ;
+const LOG_ITERS = 20 ;
 const N_EMBD = 128 ;
 const N_LAYER = 4 ;
 const N_HEAD = 4 ;

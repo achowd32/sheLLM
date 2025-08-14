@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # initialize arguments
-num_samples=$((EVAL_ITERS * BATCH_SIZE))
+num_samples=$((LOG_ITERS * BATCH_SIZE))
 train_file="$1"
 val_file="$2"
 

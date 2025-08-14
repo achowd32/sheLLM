@@ -6,7 +6,7 @@ import { GPTLanguageModel } from '../arch/nanogpt.js';
 import { BigramLanguageModel } from '../arch/bigram.js';
 
 // initialize arguments
-const evalInterval = parseInt(process.argv[2]);
+const logInterval = parseInt(process.argv[2]);
 const learningRate = parseFloat(process.argv[3]);
 const modelDir = process.argv[4];
 const vocabSize = 128;
@@ -37,7 +37,7 @@ async function main(){
   let i = 0;
   for await (const line of rl) {
     // log periodically
-    if (i % evalInterval == 0) {
+    if (i % logInterval == 0) {
         await model.save(`../logs/${i}`);
         console.log(i);
     }

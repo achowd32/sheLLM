@@ -26,11 +26,11 @@ while [ $iters -lt $num_evals ]; do
 
     # run evaluation based on which_eval argument
     if [[ "$which_eval" == "lang" ]]; then
-        eval_score=$(python3 lang_eval.py "$sample")
+        eval_score=$(./lang_eval.py "$sample")
     elif [[ "$which_eval" == "bert" ]]; then
-        eval_score=$(python3 bert_eval.py "$sample" "$reference")
+        eval_score=$(./bert_eval.py "$sample" "$reference")
     elif [[ "$which_eval" == "posp" ]]; then
-        eval_score=$(python3 pos_eval.py "$sample" "$reference")
+        eval_score=$(./pos_eval.py "$sample" "$reference")
     else
         continue
     fi

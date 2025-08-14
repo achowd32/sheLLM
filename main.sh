@@ -27,4 +27,4 @@ data/data.sh "$data_file" "$train_file" "$val_file"
 core/core.sh "$train_file" "$val_file" "$model_file"
 
 # perform evaluations
-eval/eval.sh "$val_file" "$model_dir" "$sample_file" "$eval_type"
+eval/eval.sh "$val_file" "$model_file" "$sample_file" "$eval_type"

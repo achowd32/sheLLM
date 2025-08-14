@@ -1,18 +1,23 @@
 #!/bin/bash
-num_samples=$((EVAL_ITERS * BATCH_SIZE))
-val_data="../data/val.txt"
+
+# initialize arguments
+train_file="$1"
+val_file="$2"
+num_samples=$((LOG_ITERS * BATCH_SIZE))
+
+# get chunked tokens
+ttoks="$(./tokenize.sh $num_samples "$train_file" | ./chunk.py $BATCH_SIZE $BLOCK_SIZE)"
+vtoks="$(./tokenize.sh $num_samples "$val_file" | ./chunk.py $BATCH_SIZE $BLOCK_SIZE)"
 
 while read log; do
     # calculate train loss
-    tloss=$(./tokenize.sh $num_samples | 
-    python3 chunk.py $BATCH_SIZE $BLOCK_SIZE |
-    python3 log.py "../logs/${log}.pth" $EVAL_ITERS |
+    tloss=$(echo "$ttoks" |
+    ./log.py "../logs/${log}.pth" $LOG_ITERS |
     grep -oE "[0-9]+\.[0-9]+")
 
     # calculate validation loss
-    vloss=$(./tokenize.sh $num_samples $val_data |
-    python3 chunk.py $BATCH_SIZE $BLOCK_SIZE |
-    python3 log.py "../logs/${log}.pth" $EVAL_ITERS |
+    vloss=$(echo "$vtoks" |
+    ./log.py "../logs/${log}.pth" $LOG_ITERS |
     grep -oE "[0-9]+\.[0-9]+")
 
     # print to stdout

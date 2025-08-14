@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import json
 import torch
@@ -8,6 +10,7 @@ from arch import architecture
 # initialize arguments
 eval_interval = int(sys.argv[1])
 learning_rate = float(sys.argv[2])
+model_file = sys.argv[3]
 vocab_size = 128
 
 # initialize model and optimizer
@@ -37,6 +40,10 @@ for line in sys.stdin:
     #iterate
     i += 1
 
-# save model
-torch.save(model.state_dict(), f"../logs/{i}.pth")
+# save weights after training
+file_name = f"../logs/{i}.pth"
+torch.save(model.state_dict(), file_name)
 print(i, flush=True)
+
+# save model
+torch.save(model.state_dict(), f"../{model_file}.pth")

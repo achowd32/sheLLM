@@ -10,8 +10,21 @@ BLUE='\033[1;34m'
 RESET='\033[0m'
 set +o allexport
 
-cd data; ./data.sh
+# ------------------- START PIPELINE ------------------- 
 
-cd ../core; ./core.sh
+# initialize variables
+data_file="data.txt"
+train_file="train.txt"
+val_file="val.txt"
+model_file="model"
+sample_file="sample.txt"
+eval_type="lang" # can be "lang", "bert", or "posp"
 
-cd ../eval; ./eval.sh
+# process data
+data/data.sh "$data_file" "$train_file" "$val_file"
+
+# run core tokenization and training pipeline
+core/core.sh "$train_file" "$val_file" "$model_file"
+
+# perform evaluations
+eval/eval.sh "$val_file" "$model_dir" "$sample_file" "$eval_type"

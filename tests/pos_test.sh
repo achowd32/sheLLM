@@ -7,9 +7,9 @@ set +o allexport
 
 sample="This is a sample sentence, which is identical to the other."
 reference="This is a sample sentence, which is identical to the other."
-pos_score=$(python3 ../eval/pos_eval.py "$sample" "$reference" 2>&1 | grep "Syntactic similarity" | awk '{print $3}')
+pos_score=$(python3 ../eval/pos_eval.py "$sample" "$reference")
 
-if [ "$pos_score" == "1.00" ]; then
+if [ "$pos_score" == "1.0000" ]; then
     echo "$0 success: POS-scores correctly calculated"
     exit 0
 else

@@ -6,7 +6,7 @@ source "test_params.py"
 set +o allexport
 
 sample="This is a sentence with no errors. This es a sentence with one error."
-langscore=$(python3 ../eval/lang_eval.py "$sample" 2>&1 | grep "Numerrors: " | awk '{print $2}')
+langscore=$(python3 ../eval/lang_eval.py "$sample")
 
 if [ "$langscore" -eq 1 ]; then
     echo "$0 success: langscore correctly calculated"

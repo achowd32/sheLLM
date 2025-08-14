@@ -1,8 +1,17 @@
+#!/usr/bin/env python3
+
 import sys
-import spacy
 from difflib import SequenceMatcher
 
-# load spacy model
+import spacy
+from spacy.util import is_package
+from spacy.cli import download
+
+# download spacy model if it hasn't already been downloaded
+if not is_package("en_core_web_sm"):
+    download("en_core_web_sm")
+
+# load in spacy model
 nlp = spacy.load("en_core_web_sm")
 
 # load arguments
@@ -18,4 +27,4 @@ pos_sample = pos_sequence(sample)
 pos_ref = pos_sequence(reference)
 matcher = SequenceMatcher(None, pos_sample, pos_ref)
 score = matcher.ratio()
-print(f"Syntactic similarity: {score:.2f}")
+print(f"{score:.4f}")

@@ -2,9 +2,9 @@
 cd "$(dirname "$0")"
 
 # get filenames
-data_file="data.txt"
-train_file="train.txt"
-val_file="val.txt"
+data_file="$1"
+train_file="$2"
+val_file="$3"
 
 # download training data if it doesn't exist
 echo -e "${BLUE}Initializing training data...${RESET}"

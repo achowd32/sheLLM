@@ -3,27 +3,18 @@ cd "$(dirname "$0")"
 
 # initialize arguments
 val_file="$1"
-model_dir="$2"
-sample_file="$3"
-which_eval="$4"
-
-# initialize variables
-num_evals=1
-prompt=""
-max_tokens=500
+which_eval="$2"
+output_toks="$3"
 
 echo -e "${BLUE}Performing evaluations...${RESET}"
 
-iters=0
 eval_sum=0
-while [ $iters -lt $num_evals ]; do
-    # generate sample
-    ./generate.sh "../$model_dir" "$prompt" "$max_tokens" > "$sample_file"
-   
+reference=$(head -c "$output_toks" "../data/$val_file")
+
+for sample_file in ../outputs/*; do
     # load the sample text and reference text into variables
     sample=$(cat "$sample_file")
-    reference=$(head -c "$max_tokens" "../data/$val_file")
-
+    
     # run evaluation based on which_eval argument
     if [[ "$which_eval" == "lang" ]]; then
         eval_score=$(./lang_eval.py "$sample")
@@ -36,10 +27,8 @@ while [ $iters -lt $num_evals ]; do
     fi
 
     eval_sum=$(echo "$eval_sum + $eval_score" | bc -l)
-    ((iters++))
 done 
 
-eval_avg=$(echo "scale=5; $eval_sum / $num_evals" | bc)
-
-# echo -e "${BLUE}Printing evaluation results, averaged over ${num_evals} iterations...${RESET}"
-echo "Score: ${eval_avg}"
+total_files=$(ls -1 ../outputs/ | wc -l)
+eval_avg=$(echo "scale=5; $eval_sum / $total_files" | bc)
+echo "Evaluation score: ${eval_avg}"

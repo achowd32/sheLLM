@@ -4,12 +4,12 @@ cd "$(dirname "$0")"
 # initialize arguments
 val_file="$1"
 which_eval="$2"
-output_toks="$3"
+output_len="$3"
 
 echo -e "${BLUE}Performing evaluations...${RESET}"
 
 eval_sum=0
-reference=$(head -c "$output_toks" "../data/$val_file")
+reference=$(head -c "$output_len" "../data/$val_file")
 
 for sample_file in ../outputs/*; do
     # load the sample text and reference text into variables

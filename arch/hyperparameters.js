@@ -1,6 +1,6 @@
+const MAX_ITERS = 100 ;
 const BATCH_SIZE = 12 ;
 const BLOCK_SIZE = 64 ;
-const MAX_ITERS = 100 ;
 const LEARNING_RATE = 0.0003 ;
 const LOG_INTERVAL = 100 ;
 const LOG_ITERS = 20 ;

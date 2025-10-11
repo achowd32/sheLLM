@@ -20,12 +20,8 @@ async function train(line){
   const batch = JSON.parse(line);
 
   tf.tidy(() => {
-    // create tensors
-    const x = tf.tensor2d(batch.xb, undefined, 'int32');
-    const y = tf.tensor2d(batch.yb, undefined, 'int32');
-    
-    // training step
-    optimizer.minimize(() => { return model.loss(x, y); });
+    // TODO: create input and label tensors from batch
+    // TODO: use the optimizer and the model loss function to train the model
   });
 };
 
@@ -36,18 +32,11 @@ async function main(){
   // main training loop
   let i = 0;
   for await (const line of rl) {
-    // log periodically
-    if (i % logInterval == 0) {
-        await model.save(`../logs/${i}`);
-        console.log(i);
-    }
-
-    // train and iterate
-    await train(line); 
-    i++;
+    // TODO: invoke the logger periodically (according to logInterval)
+    // TODO: call the train function to train the model
   }
 
-  // save weights after training
+  // save weights and log after training
   await model.save(`../logs/${i}`);
   console.log(i);
 

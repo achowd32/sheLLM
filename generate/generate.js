@@ -17,17 +17,9 @@ await model.load(filePath);
 // generate function
 async function runGeneration(promptVal) {
   tf.tidy(() => {
-    let context;
-
-    if (promptVal.trim()) {
-        const tokens = promptVal.trim().split(/\s+/).map(Number);
-        context = tf.tensor2d([tokens], undefined, 'int32');
-    } else {
-        context = tf.zeros([1, 1], 'int32');
-    }
-
-    const generated = model.generate(context, maxTokens).arraySync()[0];
-    console.log(generated.join(' '));
+    // TODO: convert the prompt tokens into array format (what should you do with an empty prompt?)
+    // TODO: use the model's generate function to generate new tokens
+    // TODO: output each token separated by a space, all on a single line
   });
 }
 
@@ -36,12 +28,8 @@ async function main() {
   // create readline interface for stdin
   const rl = createInterface({input: process.stdin});
   
-  // read in prompt
-  let promptVal = '';
-  rl.on('line', (line) => { promptVal += line; });
-
-  // run generation function once prompt has been read
-  rl.on('close', () => { runGeneration(promptVal); });
+  // TODO: read in prompt
+  // TODO: run generation function with the given prompt value
 }
 
 main();

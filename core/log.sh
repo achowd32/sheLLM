@@ -10,12 +10,12 @@ ttoks="$(./tokenize.sh $num_samples "$train_file" | ./chunk.js $BATCH_SIZE $BLOC
 vtoks="$(./tokenize.sh $num_samples "$val_file" | ./chunk.js $BATCH_SIZE $BLOCK_SIZE)"
 
 while read log; do
-    # calculate train loss
-    tloss=$(echo "$ttoks" | ./log.js "../logs/${log}" 2>/dev/null)
+    # TODO: calculate train loss
+    tloss=
 
-    # calculate validation loss
-    vloss=$(echo "$vtoks" | ./log.js "../logs/${log}" 2>/dev/null)
+    # TODO: calculate validation loss
+    vloss=
 
-    # print to stdout
+    # print to stdout to see progress
     echo "At training interval ${log} — train loss: ${tloss}, validation loss: ${vloss}"
 done

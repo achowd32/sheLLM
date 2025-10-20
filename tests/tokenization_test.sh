@@ -2,7 +2,7 @@
 
 cd "$(dirname "$0")"
 set -o allexport
-source "test_params.py"
+source "test_params.sh"
 set +o allexport
 
 input="../tests/inputs/tok_1.txt"

@@ -15,4 +15,5 @@ let i = 0;
 for await (const line of rl) {
   // TODO: read in the stream of tokens and batch them in the right format
   // output tokens as a JSON string (look into JSON.stringify)
+  // please label your batches "xb" and "yb" to pass the tests!
 }

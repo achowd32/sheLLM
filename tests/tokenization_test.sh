@@ -5,8 +5,8 @@ set -o allexport
 source "test_params.py"
 set +o allexport
 
-input="../tests/inputs_outputs/core_1.txt"
-output="../tests/inputs_outputs/core_2.txt"
+input="../tests/inputs/tok_1.txt"
+output="../tests/outputs/tok_1.txt"
 
 if diff <(../core/tokenize.sh "22" "$input") <(cat "$output"); then
     echo "$0 success: texts are identical"

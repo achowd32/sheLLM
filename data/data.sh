@@ -6,7 +6,7 @@ data_file="$1"
 train_file="$2"
 val_file="$3"
 
-# download training data if it doesn't exist
+# download training data
 curl -o "$data_file" "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt"
 
 # TODO: clean data (remove non-ASCII characters)

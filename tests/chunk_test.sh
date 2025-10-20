@@ -5,8 +5,8 @@ set -o allexport
 source "test_params.py"
 set +o allexport
 
-input="inputs_outputs/core_2.txt"
-output="inputs_outputs/core_3.txt"
+input="inputs/chunk_1.txt"
+output="outputs/chunk_1.txt"
 
 if diff <(cat "$input" | ../core/chunk.js "$BATCH_SIZE" "$BLOCK_SIZE") <(cat "$output"); then
     echo "$0 success: texts are identical"

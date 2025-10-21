@@ -21,7 +21,15 @@ async function train(line){
 
   tf.tidy(() => {
     // TODO: create input and label tensors from batch
+    // __start_solution__
+    const x = tf.tensor2d(batch.xb, undefined, 'int32');
+    const y = tf.tensor2d(batch.yb, undefined, 'int32');
+    // __end_solution__
+    
     // TODO: use the optimizer and the model loss function to train the model
+    // __start_solution__
+    optimizer.minimize(() => { return model.loss(x, y); });
+    // __end_solution__
   });
 };
 
@@ -33,7 +41,18 @@ async function main(){
   let i = 0;
   for await (const line of rl) {
     // TODO: invoke the logger periodically (according to logInterval)
-    // TODO: call the train function to train the model
+    // __start_solution__
+    if (i % logInterval == 0) {
+        await model.save(`../logs/${i}`);
+        console.log(i);
+    }
+    // __end_solution
+    
+    // TODO: call the train function to train the model and iterate
+    // __start_solution
+    await train(line); 
+    i++;
+    // __end_solution
   }
 
   // save weights and log after training

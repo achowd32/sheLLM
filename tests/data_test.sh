@@ -26,4 +26,4 @@ else
     exit 1
 fi
 
-rm "$tmp_train" "$tmp_val"
+# rm "$tmp_train" "$tmp_val"

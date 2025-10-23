@@ -22,7 +22,6 @@ data_file="data.txt" # name of the file to which we write all data
 train_file="train.txt" # name of the file to which we write training data
 val_file="val.txt" # name of the file to which we write validation data
 model_dir="model" # name of the directory to which we save our trained model
-eval_type="lang" # type of eval to run; can be "lang", "bert", or "posp"
 output_toks=500 # number of tokens per generated output
 output_prompt="" # prompt used for output generation
 num_outputs=3 # number of outputs to generate
@@ -38,4 +37,4 @@ generate/generate.sh "$model_dir" "$output_toks" "$output_prompt" "$num_outputs"
 
 # perform evaluations
 prompt_len=$(echo -n "$output_prompt" | wc -c | tr -d ' ')
-eval/eval.sh "$val_file" "$eval_type" "$((prompt_len + output_toks))"
+eval/eval.sh "$val_file" "$((prompt_len + output_toks))"

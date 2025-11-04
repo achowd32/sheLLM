@@ -5,13 +5,16 @@ set -o allexport
 source "test_params.sh"
 set +o allexport
 
-input="inputs/chunk_1.txt"
-output="outputs/chunk_1.txt"
+for i in $(seq 4); do
+    input="inputs/chunk_${i}.txt"
+    output="outputs/chunk_${i}.txt"
 
-if diff <(cat "$input" | ../core/chunk.js "$BATCH_SIZE" "$BLOCK_SIZE") <(cat "$output"); then
-    echo "$0 success: texts are identical"
-    exit 0
-else
-    echo "$0 failure: texts are not identical"
-    exit 1
-fi
+    if diff <(cat "$input" | ../core/chunk.js "$BATCH_SIZE" "$BLOCK_SIZE") <(cat "$output"); then
+        echo "$0 success on test ${i}: texts are identical"
+    else
+        echo "$0 failure on test ${i}: texts are not identical"
+        exit 1
+    fi
+done
+
+exit 0

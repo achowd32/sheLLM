@@ -5,13 +5,15 @@ set -o allexport
 source "test_params.sh"
 set +o allexport
 
-input="../tests/inputs/tok_1.txt"
-output="../tests/outputs/tok_1.txt"
+for i in $(seq 4); do
+    input="../tests/inputs/tok_${i}.txt"
+    output="../tests/outputs/tok_${i}.txt"
+    if diff <(../core/tokenize.sh "8" "$input") <(cat "$output"); then
+        echo "$0 success on test #${i}: texts are identical"
+    else
+        echo "$0 failure on test #${i}: texts are not identical"
+        exit 1
+    fi
+done
 
-if diff <(../core/tokenize.sh "22" "$input") <(cat "$output"); then
-    echo "$0 success: texts are identical"
-    exit 0
-else
-    echo "$0 failure: texts are not identical"
-    exit 1
-fi
+exit 0

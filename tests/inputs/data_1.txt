@@ -1,3 +1,2 @@
-Hello  
-Caf 123 
-Hola amigo! 
+As prt of ths tst, we wan t eliminate non-ASCII chracters,
+and split text roughly 90/10. Dn't forgt abot nelines!

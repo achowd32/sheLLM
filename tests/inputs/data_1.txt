@@ -1,2 +1,2 @@
-As prt of ths tst, we wan t eliminate non-ASCII chracters,
-and split text roughly 90/10. Dn't forgt abot nelines!
+As párt of thǐs tèst, we wanť tœ eliminate non-ASCII chāracters,
+and split text roughly 90/10. Dön't forgẽt aboűt neŵlines!

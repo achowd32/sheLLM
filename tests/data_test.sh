@@ -16,6 +16,7 @@ for i in $(seq 3); do
         echo "$0 (training data) success on test #${i}: texts are identical"
     else
         echo "$0 (training data) failure on test #${i}: texts are not identical"
+        rm "$tmp_train" "$tmp_val"
         exit 1
     fi
 
@@ -23,6 +24,7 @@ for i in $(seq 3); do
         echo "$0 (validation data) success on test #${i}: texts are identical"
     else
         echo "$0 (validation data) failure on test #${i}: texts are not identical"
+        rm "$tmp_train" "$tmp_val"
         exit 1
     fi
 done
